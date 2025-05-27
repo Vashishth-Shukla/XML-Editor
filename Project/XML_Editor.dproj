@@ -123,10 +123,16 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\Source\View\UMainForm.pas">
-            <Form>MainForm</Form>
+        <DCCReference Include="..\Source\View\UfrmMain.pas">
+            <Form>frmMain</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="U_XmlNodeWrapper.pas"/>
+        <DCCReference Include="..\Source\Model\Interfaces\IXmlDocument.pas"/>
+        <DCCReference Include="..\Source\Model\Interfaces\IXmlDocumentObserver.pas"/>
+        <DCCReference Include="..\Source\Model\Interfaces\IXmlEngine.pas"/>
+        <DCCReference Include="..\Source\Model\Interfaces\IXmlNode.pas"/>
+        <None Include="XML_Editor.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -164,6 +170,12 @@
                 <DeployFile LocalName="Win64\Debug\XML_Editor.rsm" Configuration="Debug" Class="DebugSymbols">
                     <Platform Name="Win64">
                         <RemoteName>XML_Editor.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="XML_Editor.dpr" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
