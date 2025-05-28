@@ -3,15 +3,7 @@
 │   ├── MyXmlEditor.dpr           (Delphi Project file)
 │   ├── MyXmlEditor.dproj         (Delphi Project settings)
 │   ├── MyXmlEditor.cfg           (Delphi Project config)
-│   └── Output/                   <--- Recommended: For generated binaries
-│       ├── Win32/
-│       │   └── Debug/
-│       │       └── MyXmlEditor.exe
-│       │   └── Release/
-│       │       └── MyXmlEditor.exe
-│       └── Win64/
-│           └── Debug/
-│           └── Release/
+
 │
 ├── Source/
 │   ├── View/
@@ -37,7 +29,7 @@
 │   │   │   └── XmlAdapterFactory.pas  (Creates instances of IXmlDocument, IXmlNode, IXmlAttribute)
 │   │   │
 │   │   └── DataTypes/
-│   │       └── XmlNodeTypes.pas    (e.g., specific enums for node types)
+│   │       └── XmlCommons.pas    (e.g., specific enums for node types)
 │   │
 │   ├── Lib/
 │   │   └── VirtualTreeView/
@@ -48,7 +40,15 @@
 │   │
 │   └── Common/
 │       └── AppConstants.pas      (Global constants, shared enums, etc.)
-│
+└── Output/                   <--- Recommended: For generated binaries
+│       ├── Win32/
+│       │   └── Debug/
+│       │       └── MyXmlEditor.exe
+│       │   └── Release/
+│       │       └── MyXmlEditor.exe
+│       └── Win64/
+│           └── Debug/
+│           └── Release/│
 └── Docs/
     └── README.md
     └── Architecture.md

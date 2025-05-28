@@ -144,6 +144,7 @@
         <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlAttributeMsXmlAdapter.pas"/>
         <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlDocumentMsXmlAdapter.pas"/>
         <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlNodeMsXmlAdapter.pas"/>
+        <DCCReference Include="..\Source\Model\DataTypes\uXmlCommon.pas"/>
         <None Include="MyXmlEditor.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

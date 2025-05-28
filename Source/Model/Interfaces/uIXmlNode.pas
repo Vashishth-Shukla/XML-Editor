@@ -5,21 +5,10 @@ interface
 uses
   System.Generics.Collections, // For TList<T>
   System.Rtti,                 // For RTTI on interfaces
-  uIXmlAttribute;              // Depends on our IXmlAttribute interface
+  uIXmlAttribute,              // Depends on our IXmlAttribute interface
+  uXmlCommon;                  // Common types like TXmlNodeType and EXmlAdapterException
 
 type
-  // Define XML Node Types as an enum
-  TXmlNodeType = (
-    xntUnknown,                 // Unknown or unhandled node type
-    xntElement,                 // An XML element (e.g., <tag>)
-    xntAttribute,               // An attribute of an element (e.g., name="value")
-    xntText,                    // Text content within an element
-    xntCData,                   // CDATA section (e.g., <![CDATA[...]]>)
-    xntComment,                 // XML comment (e.g., )
-    xntProcessingInstruction    // Processing instruction (e.g., <?xml-stylesheet ...?>)
-    // xntDeclaration           // XML declaration (e.g., <?xml version="1.0" encoding="UTF-8"?>) // not available in msxml 6.0
-  );
-
   [ComponentPlatform(TRESTCategory.All)] // In case REST components
   IXmlNode = interface
     ['{53B6A86F-1D32-4165-B906-FBA80C602A5F}']

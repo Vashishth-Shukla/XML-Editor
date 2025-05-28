@@ -8,7 +8,8 @@ uses
   UIXmlDocument in '..\Source\Model\Interfaces\UIXmlDocument.pas',
   uXmlAttributeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlAttributeMsXmlAdapter.pas',
   uXmlDocumentMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlDocumentMsXmlAdapter.pas',
-  uXmlNodeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlNodeMsXmlAdapter.pas';
+  uXmlNodeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlNodeMsXmlAdapter.pas',
+  uXmlCommon in '..\Source\Model\DataTypes\uXmlCommon.pas';
 
 {$R *.res}
 

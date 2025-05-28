@@ -5,7 +5,8 @@ interface
 uses
   uIXmlNode,        // Our custom interface for XML nodes
   uIXmlAttribute,   // Depends on our IXmlAttribute interface
-  System.SysUtils;  // For string types
+  System.SysUtils,  // For string types
+  uXmlCommon;       // Common types like TXmlNodeType and EXmlAdapterException
 
 type
   // Interface for an abstracted XML Document

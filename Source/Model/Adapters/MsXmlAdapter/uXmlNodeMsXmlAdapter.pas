@@ -8,7 +8,9 @@ uses
   Xml.XMLDoc,                  // Provides TXMLDocument (though we're wrapping MSXML directly, sometimes needed for context)
   Xml.Win.MSXMLDOM,            // Provides specific MSXML DOM helpers (less frequently used directly in adapters here)
   uIXmlNode, uIXmlAttribute,   // Our custom interfaces for nodes and attributes (TXmlNodeType defined in uIXmlNode)
-  uXmlAttributeMsXmlAdapter;   // Our concrete adapter for attributes (needed for unwrapping IXmlAttribute)
+  uXmlAttributeMsXmlAdapter,   // Our concrete adapter for attributes (needed for unwrapping IXmlAttribute)
+  uXmlCommon;            // Common types like TXmlNodeType and EXmlAdapterException
+
 
 type
   TXmlNodeMsXmlAdapter = class(TInterfacedObject, IXmlNode)
