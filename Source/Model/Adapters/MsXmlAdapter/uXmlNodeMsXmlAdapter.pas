@@ -127,7 +127,7 @@ begin
     NODE_CDATA_SECTION: Result := xntCData;
     NODE_COMMENT: Result := xntComment;
     NODE_PROCESSING_INSTRUCTION: Result := xntProcessingInstruction;
-    // XML Declaration node is not mapped in MSXML or even OXML
+    // NODE_XML_DECLARATION := xntDeclaration Declaration node is not mapped in MSXML or even OXML
     // If explicit handling is needed later, this case can be re-enabled.
     else Result := xntUnknown;
   end;

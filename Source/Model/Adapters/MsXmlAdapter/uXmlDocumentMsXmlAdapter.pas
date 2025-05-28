@@ -4,40 +4,42 @@ interface
 
 uses
   System.SysUtils,
-  System.Variants,
-  System.Rtti,
-  Winapi.Windows,
-  // --- End of core system units ---
-  MSXML,
-  uIXmlDocument,
-  uIXmlNode,
-  uIXmlAttribute,
-  uXmlNodeMsXmlAdapter,
-  uXmlAttributeMsXmlAdapter;
+  System.Variants,       // Provides the VarToBoolean function for converting OleVariant results
+  System.Rtti,           // Provides GetEnumName for getting string names of enum values (e.g., for error messages)
+  Winapi.Windows,        // Provides OutputDebugString for debugging output
+  MSXML,                 // The primary unit for MSXML COM interfaces like IXMLDOMDocument
+  uIXmlDocument,         // Our custom interface for XML documents
+  uIXmlNode,             // Our custom interface for XML nodes
+  uIXmlAttribute,        // Our custom interface for XML attributes
+  uXmlNodeMsXmlAdapter,  // Concrete adapter for MSXML nodes
+  uXmlAttributeMsXmlAdapter, // Concrete adapter for MSXML attributes
+  TypInfo;
 
 type
   TXmlDocumentMsXmlAdapter = class(TInterfacedObject, IXmlDocument)
   private
     FMsXmlDocument: IXMLDOMDocument; // The actual underlying MSXML document object
-    FRootNode: IXmlNode;             // Cache for the wrapped root node
+    FRootNode: IXmlNode;             // Cache for the wrapped root node for quick access
 
     // IXmlDocument interface implementation methods
     function LoadFromFile(const AFilePath: string): Boolean;
     function LoadFromString(const AXmlString: string): Boolean;
     function SaveToFile(const AFilePath: string): Boolean;
     function SaveToString: string;
-    function CreateNew(const ARootElementName: string): IXmlNode;
-    function GetRoot: IXmlNode;
-    function CreateNode(const AName: string; ANodeType: TXmlNodeType = xntElement): IXmlNode; overload;
-    function CreateNode(const AName: string; const AValue: string; ANodeType: TXmlNodeType = xntElement): IXmlNode; overload;
-    function CreateAttribute(const AName: string; const AValue: string): IXmlAttribute;
+    function CreateNew(const ARootElementName: string): IXmlNode; // Creates a new XML document with a root element
+    function GetRoot: IXmlNode; // Retrieves the root element of the document
+    function CreateNode(const AName: string; ANodeType: TXmlNodeType = xntElement): IXmlNode; overload; // Factory method for creating new nodes
+    function CreateNode(const AName: string; const AValue: string; ANodeType: TXmlNodeType = xntElement): IXmlNode; overload; // Overloaded factory for nodes with initial values
+    function CreateAttribute(const AName: string; const AValue: string): IXmlAttribute; // Factory method for creating new attributes
 
   public
-    // Constructor to create the adapter, initializing the MSXML document
+    // Constructor to initialize the adapter (the MSXML document object is created on demand)
     constructor Create;
+    // Destructor to ensure COM objects are released
     destructor Destroy; override;
 
-    // Optional: Expose the raw MSXML document if direct access is ever needed (usually avoided for abstraction)
+    // Optional: Expose the raw MSXML document if direct access is ever needed,
+    // though generally avoided for maintaining abstraction.
     function GetMSXMLDocument: IXMLDOMDocument;
   end;
 
@@ -50,13 +52,13 @@ var
   MsXmlAttribute: IXMLDOMAttribute;
 begin
   if not Assigned(FMsXmlDocument) then
-    raise Exception.Create('MSXML document not initialized.');
+    raise Exception.Create('MSXML document not initialized. Call CreateNew or Load methods first.');
 
-  // Create the attribute node using the MSXML document's factory method
+  // Create the attribute using the MSXML document's factory method
   MsXmlAttribute := FMsXmlDocument.createAttribute(AName);
   MsXmlAttribute.nodeValue := AValue;
 
-  // Wrap the MSXML attribute with our adapter
+  // Wrap the MSXML attribute with our adapter to return our generic interface
   Result := TXmlAttributeMsXmlAdapter.Create(MsXmlAttribute);
 end;
 
@@ -65,26 +67,24 @@ var
   MsXmlRootElement: IXMLDOMElement;
   MsXmlDeclaration: IXMLDOMProcessingInstruction;
 begin
-  // Clear any existing document
+  // Clear any existing document and cached root node
   FMsXmlDocument := nil;
   FRootNode := nil;
 
-  // Create a new MSXMLDOMDocument object
-  FMsXmlDocument := CoDOMDocument60.Create; // Use CoDOMDocument60.Create for MSXML 6.0
-  FMsXmlDocument.async := False; // Ensure synchronous loading/saving
+  // Create a new MSXMLDOMDocument object (using MSXML 6.0 which is standard on modern Windows)
+  FMsXmlDocument := CoDOMDocument60.Create;
+  FMsXmlDocument.async := False; // Ensure synchronous loading/saving operations
 
   // Add the XML Declaration (e.g., <?xml version="1.0"?>)
-  // This is a processing instruction with a specific target and data
-  // Note: While we don't expose xntDeclaration in our TXmlNodeType,
-  // MSXML still allows us to create and manage the declaration node directly.
-  MsXmlDeclaration := FMsXmlDocument.createProcessingInstruction('xml', 'version="1.0"'); // 'xml' is the target, 'version="1.0"' is the data
+  // This is handled as a processing instruction by MSXML.
+  MsXmlDeclaration := FMsXmlDocument.createProcessingInstruction('xml', 'version="1.0"');
   FMsXmlDocument.appendChild(MsXmlDeclaration);
 
-  // Create and append the root element
+  // Create and append the specified root element
   MsXmlRootElement := FMsXmlDocument.createElement(ARootElementName);
   FMsXmlDocument.appendChild(MsXmlRootElement);
 
-  // Wrap the root element with our adapter and cache it
+  // Wrap the newly created MSXML root element with our generic adapter and cache it
   FRootNode := TXmlNodeMsXmlAdapter.Create(MsXmlRootElement);
   Result := FRootNode;
 end;
@@ -95,9 +95,9 @@ var
   NodeKind: DOMNodeType;
 begin
   if not Assigned(FMsXmlDocument) then
-    raise Exception.Create('MSXML document not initialized.');
+    raise Exception.Create('MSXML document not initialized. Call CreateNew or Load methods first.');
 
-  // Convert our custom TXmlNodeType to MSXML's DOMNodeType
+  // Convert our custom TXmlNodeType enum to MSXML's specific DOMNodeType
   case ANodeType of
     xntElement: NodeKind := NODE_ELEMENT;
     xntText: NodeKind := NODE_TEXT;
@@ -105,8 +105,9 @@ begin
     xntComment: NodeKind := NODE_COMMENT;
     xntProcessingInstruction: NodeKind := NODE_PROCESSING_INSTRUCTION;
     // xntAttribute is handled by CreateAttribute.
-    // xntDeclaration is no longer in our TXmlNodeType enum.
+    // xntDeclaration is intentionally excluded from our TXmlNodeType for simplification.
     else
+      // Use GetEnumName for a descriptive error message if an unsupported type is passed
       raise Exception.CreateFmt('Cannot create node of unsupported type: %s', [GetEnumName(TypeInfo(TXmlNodeType), Ord(ANodeType))]);
   end;
 
@@ -121,6 +122,7 @@ function TXmlDocumentMsXmlAdapter.CreateNode(const AName: string; const AValue: 
 var
   NewNode: IXmlNode;
 begin
+  // Create the node, then set its value using the IXmlNode interface
   NewNode := CreateNode(AName, ANodeType);
   if Assigned(NewNode) then
     NewNode.Value := AValue;
@@ -130,15 +132,12 @@ end;
 constructor TXmlDocumentMsXmlAdapter.Create;
 begin
   inherited Create;
-  // Initialize MSXMLDOMDocument here, but only really create it when
-  // Load or CreateNew is called, as it needs to be recreated for each new document.
-  // We can create a basic instance here to avoid nil checks in subsequent calls if preferred.
-  // FMsXmlDocument := CoDOMDocument60.Create; // Can initialize here or inside Load/CreateNew
+  // FMsXmlDocument is initialized in CreateNew or Load methods, not here.
 end;
 
 destructor TXmlDocumentMsXmlAdapter.Destroy;
 begin
-  // Release COM object and cached root node
+  // Release COM object and cached root node to prevent memory leaks
   FMsXmlDocument := nil;
   FRootNode := nil;
   inherited Destroy;
@@ -151,10 +150,10 @@ end;
 
 function TXmlDocumentMsXmlAdapter.GetRoot: IXmlNode;
 begin
-  // If the document is loaded/created, the root element should be wrapped.
-  // MSXML's documentElement property gives the root element.
+  // If the root node hasn't been cached yet, attempt to get and wrap it from the MSXML document
   if not Assigned(FRootNode) and Assigned(FMsXmlDocument) then
   begin
+    // The documentElement property holds the single root element of the XML document
     if Assigned(FMsXmlDocument.documentElement) then
       FRootNode := TXmlNodeMsXmlAdapter.Create(FMsXmlDocument.documentElement);
   end;
@@ -166,13 +165,15 @@ var
   LoadResult: OleVariant;
 begin
   // Create a new MSXMLDOMDocument object for each load operation
-  FMsXmlDocument := CoDOMDocument60.Create; // Use MSXML 6.0
+  FMsXmlDocument := CoDOMDocument60.Create;
   FMsXmlDocument.async := False; // Ensure synchronous loading
 
+  // Load the XML from the specified file path
   LoadResult := FMsXmlDocument.load(AFilePath);
-  Result := VarToBoolean(LoadResult);
+  // Convert the OleVariant result to a Delphi Boolean using VarToBoolean
+  Result := VarAsType(LoadResult, varBoolean);
 
-  // If successfully loaded, clear the cached root node to ensure it's rebuilt from the new document
+  // If successfully loaded, clear any old cached root node to ensure it's rebuilt from the new document
   FRootNode := nil;
 end;
 
@@ -181,13 +182,15 @@ var
   LoadResult: OleVariant;
 begin
   // Create a new MSXMLDOMDocument object for each load operation
-  FMsXmlDocument := CoDOMDocument60.Create; // Use MSXML 6.0
+  FMsXmlDocument := CoDOMDocument60.Create;
   FMsXmlDocument.async := False; // Ensure synchronous loading
 
+  // Load the XML from the provided string
   LoadResult := FMsXmlDocument.loadXML(AXmlString);
-  Result := VarToBoolean(LoadResult);
+  // Convert the OleVariant result to a Delphi Boolean using VarToBoolean
+  Result := VarAsType(LoadResult, varBoolean);
 
-  // If successfully loaded, clear the cached root node to ensure it's rebuilt from the new document
+  // If successfully loaded, clear any old cached root node to ensure it's rebuilt from the new document
   FRootNode := nil;
 end;
 
@@ -196,11 +199,12 @@ begin
   Result := False;
   if Assigned(FMsXmlDocument) then
   try
+    // Save the XML document to the specified file path
     FMsXmlDocument.save(AFilePath);
     Result := True;
   except
     on E: Exception do
-      // Log error or handle gracefully
+      // Log any errors during saving for debugging purposes
       OutputDebugString(PChar('Error saving XML to file: ' + E.Message));
   end;
 end;
@@ -208,6 +212,7 @@ end;
 function TXmlDocumentMsXmlAdapter.SaveToString: string;
 begin
   if Assigned(FMsXmlDocument) then
+    // Return the XML content as a string
     Result := FMsXmlDocument.xml
   else
     Result := '';
