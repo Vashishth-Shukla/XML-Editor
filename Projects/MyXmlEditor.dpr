@@ -9,7 +9,9 @@ uses
   uXmlAttributeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlAttributeMsXmlAdapter.pas',
   uXmlDocumentMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlDocumentMsXmlAdapter.pas',
   uXmlNodeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlNodeMsXmlAdapter.pas',
-  uXmlCommon in '..\Source\Model\DataTypes\uXmlCommon.pas';
+  uXmlCommon in '..\Source\Model\DataTypes\uXmlCommon.pas',
+  uIXmlAdapterFactory in '..\Source\Model\Interfaces\uIXmlAdapterFactory.pas',
+  uXmlAdapterFactory in '..\Source\Model\Adapters\MsXmlAdapter\uXmlAdapterFactory.pas';
 
 {$R *.res}
 
