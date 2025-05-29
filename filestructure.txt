@@ -18,15 +18,14 @@
 │   │   │   ├── IXmlDocument.pas    (Interface for an XML document abstraction)
 │   │   │   ├── IXmlNode.pas        (Interface for an XML node abstraction)
 │   │   │   └── IXmlAttribute.pas   (Interface for an XML attribute abstraction)
+│   │   │   └── uIXmlAdapterFactory.pas   (Interface for instances of IXmlDocument, IXmlNode, IXmlAttribute)
 │   │   │
 │   │   ├── Adapters/
 │   │   │   └── MsXmlAdapter/
 │   │   │       ├── XmlDocumentMsXmlAdapter.pas  (Implements IXmlDocument using MSXML)
 │   │   │       ├── XmlNodeMsXmlAdapter.pas      (Implements IXmlNode using MSXML)
 │   │   │       └── XmlAttributeMsXmlAdapter.pas (Implements IXmlAttribute using MSXML)
-│   │   │
-│   │   ├── Factories/
-│   │   │   └── XmlAdapterFactory.pas  (Creates instances of IXmlDocument, IXmlNode, IXmlAttribute)
+│   │   │       └── XmlAdapterFactory.pas  (Creates instances of IXmlDocument, IXmlNode, IXmlAttribute)
 │   │   │
 │   │   └── DataTypes/
 │   │       └── XmlCommons.pas    (e.g., specific enums for node types)

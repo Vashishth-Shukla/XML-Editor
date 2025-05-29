@@ -29,43 +29,43 @@ object frmMain: TfrmMain
     Height = 422
     Align = alClient
     TabOrder = 1
-    ExplicitLeft = 232
-    ExplicitTop = 232
-    ExplicitWidth = 185
-    ExplicitHeight = 41
     object splRawView: TSplitter
-      Left = 122
+      Left = 201
       Top = 1
       Height = 420
-      ExplicitLeft = 120
-      ExplicitTop = 264
-      ExplicitHeight = 100
-    end
-    object tvRawXmlStructure: TTreeView
-      Left = 1
-      Top = 1
-      Width = 121
-      Height = 420
-      Align = alLeft
-      Indent = 19
-      TabOrder = 0
-      ExplicitLeft = 256
-      ExplicitTop = 160
-      ExplicitHeight = 97
+      ExplicitTop = 2
     end
     object memRawXml: TMemo
-      Left = 125
+      Left = 204
       Top = 1
-      Width = 498
+      Width = 419
       Height = 420
       Align = alClient
       Lines.Strings = (
         'memRawXml')
-      TabOrder = 1
+      TabOrder = 0
       ExplicitLeft = 224
       ExplicitTop = 168
       ExplicitWidth = 185
       ExplicitHeight = 89
+    end
+    object vstRawViewXmlStruct: TVirtualStringTree
+      Left = 1
+      Top = 1
+      Width = 200
+      Height = 420
+      Align = alLeft
+      DefaultNodeHeight = 19
+      Header.AutoSizeIndex = 0
+      Header.Height = 15
+      Header.MainColumn = -1
+      TabOrder = 1
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
+      ExplicitLeft = 224
+      ExplicitTop = 200
+      ExplicitHeight = 100
+      Columns = <>
     end
   end
   object pnlVstView: TPanel
@@ -79,6 +79,25 @@ object frmMain: TfrmMain
     ExplicitTop = 232
     ExplicitWidth = 185
     ExplicitHeight = 41
+    object vstContent: TVirtualStringTree
+      Left = 1
+      Top = 1
+      Width = 622
+      Height = 420
+      Align = alClient
+      DefaultNodeHeight = 19
+      Header.AutoSizeIndex = 0
+      Header.Height = 15
+      Header.MainColumn = -1
+      TabOrder = 0
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
+      ExplicitLeft = 328
+      ExplicitTop = 224
+      ExplicitWidth = 200
+      ExplicitHeight = 100
+      Columns = <>
+    end
   end
   object mmMain: TMainMenu
     Left = 608

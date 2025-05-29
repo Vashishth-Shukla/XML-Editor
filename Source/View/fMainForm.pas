@@ -21,10 +21,10 @@ type
     N1: TMenuItem;
     sbStatus: TStatusBar;
     pnlRawView: TPanel;
-    tvRawXmlStructure: TTreeView;
     memRawXml: TMemo;
     splRawView: TSplitter;
     pnlVstView: TPanel;
+    vstContent: TVirtualStringTree;
     mmView: TMenuItem;
     miViewToggle: TMenuItem;
     popOpt: TPopupMenu;
@@ -42,6 +42,8 @@ type
     miOptAdElmBfr: TMenuItem;
     miOptAdElmAft: TMenuItem;
     miOptAdElmCld: TMenuItem;
+    vstRawViewXmlStruct: TVirtualStringTree;
+
   private
     { Private declarations }
   public
