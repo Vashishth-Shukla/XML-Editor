@@ -7,11 +7,41 @@ uses
   System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL,
-  VirtualTrees;
+  VirtualTrees, Vcl.Menus, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls;
 
 type
   TfrmMain = class(TForm)
-    VirtualStringTree1: TVirtualStringTree;
+    mmMain: TMainMenu;
+    mmFile: TMenuItem;
+    miFileNew: TMenuItem;
+    miFileOpen: TMenuItem;
+    miFileSave: TMenuItem;
+    miFileSaveAs: TMenuItem;
+    miFileExit: TMenuItem;
+    N1: TMenuItem;
+    sbStatus: TStatusBar;
+    pnlRawView: TPanel;
+    tvRawXmlStructure: TTreeView;
+    memRawXml: TMemo;
+    splRawView: TSplitter;
+    pnlVstView: TPanel;
+    mmView: TMenuItem;
+    miViewToggle: TMenuItem;
+    popOpt: TPopupMenu;
+    miOptAdElem: TMenuItem;
+    miOptAdAttri: TMenuItem;
+    miOptAdTxt: TMenuItem;
+    miOptAdCmt: TMenuItem;
+    miOptAdCDT: TMenuItem;
+    miOptAdProIns: TMenuItem;
+    miOptExp: TMenuItem;
+    miOptClps: TMenuItem;
+    N2: TMenuItem;
+    miOptDlt: TMenuItem;
+    N3: TMenuItem;
+    miOptAdElmBfr: TMenuItem;
+    miOptAdElmAft: TMenuItem;
+    miOptAdElmCld: TMenuItem;
   private
     { Private declarations }
   public
