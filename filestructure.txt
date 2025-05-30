@@ -3,7 +3,6 @@
 │   ├── MyXmlEditor.dpr           (Delphi Project file)
 │   ├── MyXmlEditor.dproj         (Delphi Project settings)
 │   ├── MyXmlEditor.cfg           (Delphi Project config)
-
 │
 ├── Source/
 │   ├── View/

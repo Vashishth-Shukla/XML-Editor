@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<library name="City Library">
+	<!-- A list of books in the library -->
+	<books>
+		<book id="b001" genre="fiction">
+			<title>The Great Gatsby</title>
+			<author>F. Scott Fitzgerald</author>
+			<published>1925</published>
+		</book>
+	</books>
+	<members>
+		<member id="m101">
+			<name>Anna Smith</name>
+			<joined>2021-03-15</joined>
+		</member>
+		<member id="m102">
+			<name>John Doe</name>
+			<joined>2022-07-01</joined>
+		</member>
+	</members>
+</library>
