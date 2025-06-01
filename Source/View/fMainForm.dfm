@@ -1,6 +1,6 @@
 object frmMain: TfrmMain
-  Left = 0
-  Top = 0
+  Left = 573
+  Top = 154
   Caption = 'My XML Editor'
   ClientHeight = 741
   ClientWidth = 784
@@ -19,9 +19,7 @@ object frmMain: TfrmMain
     Width = 784
     Height = 19
     Panels = <>
-    ExplicitLeft = -8
-    ExplicitTop = 414
-    ExplicitWidth = 624
+    SimplePanel = True
   end
   object pnlRawView: TPanel
     Left = 0
@@ -31,8 +29,6 @@ object frmMain: TfrmMain
     Align = alClient
     TabOrder = 1
     Visible = False
-    ExplicitWidth = 614
-    ExplicitHeight = 390
     object splRawView: TSplitter
       Left = 201
       Top = 1
@@ -49,8 +45,6 @@ object frmMain: TfrmMain
       Lines.Strings = (
         'memRawXml')
       TabOrder = 0
-      ExplicitWidth = 409
-      ExplicitHeight = 388
     end
     object vstRawXmlStructure: TVirtualStringTree
       Left = 1
@@ -61,12 +55,16 @@ object frmMain: TfrmMain
       DefaultNodeHeight = 19
       Header.AutoSizeIndex = 0
       Header.Height = 15
-      Header.MainColumn = -1
+      PopupMenu = popOpt
       TabOrder = 1
       Touch.InteractiveGestures = [igPan, igPressAndTap]
       Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
-      ExplicitHeight = 420
-      Columns = <>
+      Columns = <
+        item
+          Position = 0
+          Text = 'Element'
+          Width = 200
+        end>
     end
   end
   object pnlVstView: TPanel
@@ -76,8 +74,6 @@ object frmMain: TfrmMain
     Height = 722
     Align = alClient
     TabOrder = 2
-    ExplicitWidth = 614
-    ExplicitHeight = 390
     object vstContent: TVirtualStringTree
       Left = 1
       Top = 1
@@ -87,15 +83,19 @@ object frmMain: TfrmMain
       DefaultNodeHeight = 19
       Header.AutoSizeIndex = 0
       Header.Height = 15
-      Header.MainColumn = -1
+      PopupMenu = popOpt
       TabOrder = 0
       Touch.InteractiveGestures = [igPan, igPressAndTap]
       Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
-      ExplicitLeft = 17
-      ExplicitTop = 121
-      ExplicitWidth = 622
-      ExplicitHeight = 420
-      Columns = <>
+      Columns = <
+        item
+          Position = 0
+          Text = 'Value'
+          Width = 200
+        end
+        item
+          Position = 1
+        end>
     end
   end
   object mmMain: TMainMenu
@@ -140,45 +140,57 @@ object frmMain: TfrmMain
     Top = 64
     object miOptAdElem: TMenuItem
       Caption = 'Add Element'
+      OnClick = miOptAdElemClick
       object miOptAdElmBfr: TMenuItem
         Caption = 'Before'
+        OnClick = miOptAdElmBfrClick
       end
       object miOptAdElmAft: TMenuItem
         Caption = 'After'
+        OnClick = miOptAdElmAftClick
       end
       object miOptAdElmCld: TMenuItem
         Caption = 'Child'
+        OnClick = miOptAdElmCldClick
       end
     end
     object miOptAdAttri: TMenuItem
       Caption = 'Add Attribute'
+      OnClick = miOptAdAttriClick
     end
     object miOptAdTxt: TMenuItem
       Caption = 'Add Text '
+      OnClick = miOptAdTxtClick
     end
     object miOptAdCmt: TMenuItem
       Caption = 'Add Comment'
+      OnClick = miOptAdCmtClick
     end
     object miOptAdCDT: TMenuItem
       Caption = 'Add CDATA'
+      OnClick = miOptAdCDTClick
     end
     object miOptAdProIns: TMenuItem
       Caption = 'Add Processing Instruction'
+      OnClick = miOptAdProInsClick
     end
     object N3: TMenuItem
       Caption = '-'
     end
     object miOptDlt: TMenuItem
       Caption = 'Delete'
+      OnClick = miOptDltClick
     end
     object N2: TMenuItem
       Caption = '-'
     end
     object miOptExp: TMenuItem
       Caption = 'Expand'
+      OnClick = miOptExpClick
     end
     object miOptClps: TMenuItem
       Caption = 'Collapse'
+      OnClick = miOptClpsClick
     end
   end
 end

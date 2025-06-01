@@ -5,15 +5,16 @@ uses
   fMainForm in '..\Source\View\fMainForm.pas' {frmMain},
   uIXmlAttribute in '..\Source\Model\Interfaces\uIXmlAttribute.pas',
   uIXmlNode in '..\Source\Model\Interfaces\uIXmlNode.pas',
-  uIXmlDocument in '..\Source\Model\Interfaces\uIXmlDocument.pas', // FIX: Corrected typo from UIXmlDocument
+  UIXmlDocument in '..\Source\Model\Interfaces\UIXmlDocument.pas',
   uXmlAttributeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlAttributeMsXmlAdapter.pas',
   uXmlDocumentMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlDocumentMsXmlAdapter.pas',
   uXmlNodeMsXmlAdapter in '..\Source\Model\Adapters\MsXmlAdapter\uXmlNodeMsXmlAdapter.pas',
   uXmlCommon in '..\Source\Model\DataTypes\uXmlCommon.pas',
   uIXmlAdapterFactory in '..\Source\Model\Interfaces\uIXmlAdapterFactory.pas',
-  uXmlAdapterFactory in '..\Source\Model\Adapters\MsXmlAdapter\uXmlAdapterFactory.pas', // This is your concrete factory
+  uXmlAdapterFactory in '..\Source\Model\Adapters\MsXmlAdapter\uXmlAdapterFactory.pas',
   uIXmlEditorPresenter in '..\Source\Presenter\uIXmlEditorPresenter.pas',
-  uXmlEditorPresenter in '..\Source\Presenter\uXmlEditorPresenter.pas';
+  uXmlEditorPresenter in '..\Source\Presenter\uXmlEditorPresenter.pas',
+  uIMainForm in '..\Source\View\uIMainForm.pas';
 
 {$R *.res}
 
@@ -23,7 +24,8 @@ var
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TfrmMain, frmMain); // The form is created here
+  Application.CreateForm(TfrmMain, frmMain);
+  // The form is created here
 
   // --- NEW MVP CONNECTION CODE ---
 
@@ -36,6 +38,8 @@ begin
 
   // 3. Assign the created Presenter instance to the Form
   frmMain.SetPresenter(LPresenter);
+  LPresenter.NewXml; // Tell the Presenter to create a new XML document at startup
+
 
   // --- END NEW MVP CONNECTION CODE ---
 

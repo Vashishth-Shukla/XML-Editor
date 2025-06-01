@@ -1,4 +1,4 @@
-unit uIXmlNode;
+﻿unit uIXmlNode;
 
 interface
 

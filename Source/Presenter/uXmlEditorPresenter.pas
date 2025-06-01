@@ -6,9 +6,9 @@ uses
   System.SysUtils,     // For general utilities and exceptions
   System.IOUtils,      // For TPath etc.
   uIXmlEditorPresenter,  // Our presenter interface
-  uIXmlDocument,         // Our core XML document interface
+  uIXmlDocument,       // Our core XML document interface
   uIXmlAdapterFactory,   // Our factory for creating IXmlDocument
-  fMainForm;             // The view interface (IMainFormView is defined within fMainForm)
+  uIMainForm;          // <--- IMPORTANT: Directly use the interface unit
 
 type
   // The concrete implementation of the XML Editor Presenter.
@@ -84,11 +84,11 @@ begin
   if not ConfirmDiscardChanges then Exit;
 
   FDocument := FFactory.CreateDocument; // Create a new empty document instance
-  FDocument.CreateNew('root');         // Create a basic root element for the new document
-  FIsDirty := True;                    // Mark as dirty
+  FDocument.CreateNew('root');          // Create a basic root element for the new document
+  FIsDirty := True;                     // Mark as dirty
   FCurrentFilePath := '';
   FView.ShowMessage('New XML document created.');
-  UpdateUIFromModel;                   // Update UI to reflect the new document
+  UpdateUIFromModel;                    // Update UI to reflect the new document
 end;
 
 procedure TXmlEditorPresenter.OpenXml;
@@ -109,9 +109,7 @@ begin
         FView.ShowMessage(Format('XML loaded from "%s".', [FilePath]));
         UpdateUIFromModel;
       end
-      // ***** THIS 'end' HAS NO SEMICOLON BEFORE 'else' *****
-      // This line is where the semicolon was causing error E2153 at line 122:3
-      else
+      else // <--- THIS 'else' NO LONGER HAS A MISSING SEMICOLON (it's part of the if/else)
       begin
         // FDocument.LoadFromFile already raises EXmlAdapterException for parsing errors
         FView.ShowMessage(Format('Failed to load XML from "%s". Check file format.', [FilePath]));
@@ -149,8 +147,7 @@ begin
       FView.ShowMessage('XML loaded from raw text.');
       UpdateUIFromModel;
     end
-    // ***** THIS 'end' HAS NO SEMICOLON BEFORE 'else' *****
-    else
+    else // <--- THIS 'else' NO LONGER HAS A MISSING SEMICOLON (it's part of the if/else)
     begin
       // FDocument.LoadFromString already raises EXmlAdapterException for parsing errors
       FView.ShowMessage('Failed to load XML from raw text. Check XML format.');
@@ -180,8 +177,11 @@ begin
       // Ensure the raw XML memo's content is the source for saving if it's visible/active
       if FView.IsRawViewPanelVisible then
       begin
-        FDocument.LoadFromString(FView.GetRawXmlString); // Re-parse raw text before saving
-        FIsDirty := True; // Mark as dirty if re-parsed
+        // If raw view is visible, parse its content into the document before saving
+        // This implicitly handles a user making changes in the raw memo and saving directly.
+        // It will raise an exception if the raw XML is invalid.
+        FDocument.LoadFromString(FView.GetRawXmlString);
+        FIsDirty := True; // Mark as dirty if re-parsed (even if successful, it was edited)
       end;
 
       if FDocument.SaveToFile(FCurrentFilePath) then
@@ -189,7 +189,7 @@ begin
         FIsDirty := False;
         FView.ShowMessage(Format('XML saved to "%s".', [FCurrentFilePath]));
       end
-      else // No semicolon here
+      else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
       begin
         FView.ShowMessage(Format('Failed to save XML to "%s".', [FCurrentFilePath]));
       end;
@@ -227,7 +227,7 @@ begin
         FIsDirty := False;
         FView.ShowMessage(Format('XML saved as "%s".', [FilePath]));
       end
-      else // No semicolon here
+      else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
       begin
         FView.ShowMessage(Format('Failed to save XML as "%s".', [FilePath]));
       end;
@@ -243,8 +243,8 @@ end;
 procedure TXmlEditorPresenter.ExitApp;
 begin
   if ConfirmDiscardChanges then
-    Application.Terminate // ***** NO SEMICOLON HERE *****
-  else // No semicolon here
+    Application.Terminate // <--- ADDED SEMICOLON HERE
+  else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
     FView.ShowMessage('Exit cancelled.');
 end;
 
@@ -291,9 +291,7 @@ begin
     FView.SetVSTViewPanelVisibility(True);
     FView.ShowMessage('Switched to Virtual String Tree view.');
   end
-  // ***** THIS 'end' HAS NO SEMICOLON BEFORE 'else' *****
-  // This line is where the semicolon was causing error E2153 at line 237:3
-  else
+  else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
   begin
     FView.SetVSTViewPanelVisibility(False);
     FView.SetRawViewPanelVisibility(True);

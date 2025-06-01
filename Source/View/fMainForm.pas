@@ -5,34 +5,17 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL,
-  VirtualTrees, Vcl.Menus, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls,
-  uIXmlNode,             // Used for UpdateXmlTree
-  uIXmlEditorPresenter;  // The interface for our Presenter
-
-type
-  // Interface for the Main Form (View)
-  // The Presenter will interact with the form through this interface.
-  IMainFormView = interface
-    ['{C0A1B2C3-D4E5-6789-EF01-23456789ABCD}'] // YOUR OWN GUID (Ctrl+Shift+G)
-    procedure ShowMessage(const AMessage: string);
-    // Method to update the primary XML tree view (TVirtualStringTree)
-    procedure UpdateXmlTree(const AXmlRootNode: IXmlNode);
-    // Method to update the raw XML text view (TMemo)
-    procedure UpdateRawXml(const AXmlString: string);
-    // Method to retrieve the current text from the raw XML memo
-    function GetRawXmlString: string;
-    // Methods for file dialogs, making the Presenter UI-agnostic
-    function OpenFileDialog(const AFilter: string): string;
-    function SaveFileDialog(const AFilter: string): string;
-    // Confirmation dialog for actions like New/Open/Exit with unsaved changes
-    function ShowConfirmationDialog(const AMessage, ACaption: string): Boolean;
-    // Add methods for getting selected node from tree, etc. as needed later
-    function GetSelectedTreeNode: IXmlNode; // Assuming VirtualStringTree provides a way to get IXmlNode
-    procedure SetRawViewPanelVisibility(AVisible: Boolean);
-    procedure SetVSTViewPanelVisibility(AVisible: Boolean);
-    function IsRawViewPanelVisible: Boolean;
-  end;
+  VirtualTrees.BaseAncestorVCL,
+  VirtualTrees.BaseTree,
+  VirtualTrees.AncestorVCL,
+  VirtualTrees,
+  Vcl.Menus, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls,
+  // --- Our custom units (needed for interface section declarations) ---
+  uIXmlNode,             // Still needed because TfrmMain methods (like GetSelectedTreeNode, UpdateXmlTree) use IXmlNode
+  uIXmlAttribute,        // Still needed for casting in UpdateXmlTree's helper
+  uIXmlEditorPresenter,  // The interface for our Presenter
+  uXmlCommon,            // For TXmlNodeType enum (used in VST GetText declarations)
+  uIMainForm;            // IMPORTANT: Now uses the separate interface unit (uIMainForm.pas)
 
 type
   TfrmMain = class(TForm, IMainFormView)
@@ -46,7 +29,7 @@ type
     N1: TMenuItem;
     sbStatus: TStatusBar;
     pnlRawView: TPanel;
-    vstRawXmlStructure: TVirtualStringTree; // CORRECTED: Now TVirtualStringTree for raw view tree
+    vstRawXmlStructure: TVirtualStringTree;
     memRawXml: TMemo;
     splRawView: TSplitter;
     pnlVstView: TPanel;
@@ -91,13 +74,27 @@ type
     procedure miOptAdElmBfrClick(Sender: TObject); // Specific add element options
     procedure miOptAdElmAftClick(Sender: TObject);
     procedure miOptAdElmCldClick(Sender: TObject);
+
+    // --- TVirtualStringTree Event Handler Declarations ---
+    procedure vstContentGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure vstContentFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+
+    procedure vstRawXmlStructureGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure vstRawXmlStructureFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    // --- End TVirtualStringTree ---
+
   private
     FPresenter: IXmlEditorPresenter; // Use the interface for the presenter
     { Private declarations }
-  public
-    procedure SetPresenter(const APresenter: IXmlEditorPresenter); // Setter expects interface
 
-    // IMainFormView implementation
+    // Helper function for TVirtualStringTree - now a method of the form
+    function GetXmlNodeFromVSTNode(Tree: TBaseVirtualTree; Node: PVirtualNode): IXmlNode;
+
+  public
+    // Setter for the Presenter (called by the application's entry point)
+    procedure SetPresenter(const APresenter: IXmlEditorPresenter);
+
+    // IMainFormView implementation (REMOVED 'override' keyword - these are interface implementations)
     procedure ShowMessage(const AMessage: string);
     procedure UpdateXmlTree(const AXmlRootNode: IXmlNode);
     procedure UpdateRawXml(const AXmlString: string);
@@ -119,7 +116,20 @@ implementation
 {$R *.dfm} // Links the DFM file for the form design
 
 uses
-  System.IOUtils;     // For TPath functions in dialogs if you need to extract path/name
+  System.IOUtils,            // For TPath functions in dialogs if you need to extract path/name
+  // --- Concrete Presenter (needed only in implementation for FPresenter assignment) ---
+  uXmlEditorPresenter;       // The concrete Presenter class (used for FPresenter assignment)
+
+// --- Helper function for TVirtualStringTree ---
+function TfrmMain.GetXmlNodeFromVSTNode(Tree: TBaseVirtualTree; Node: PVirtualNode): IXmlNode;
+var
+  Data: Pointer;
+begin
+  Result := nil; // Initialize Result
+  Data := Tree.GetNodeData(Node);
+  if Assigned(Data) then
+    Result := IXmlNode(Data); // Cast the pointer back to IXmlNode
+end;
 
 { TfrmMain }
 
@@ -128,6 +138,15 @@ begin
   // Set initial view state: prioritize VST view
   SetRawViewPanelVisibility(False); // Hide raw view initially
   SetVSTViewPanelVisibility(True);  // Show VST view initially
+
+  // --- TVirtualStringTree Event Assignments (for both VSTs) ---
+  // Ensure these are assigned, or the VST won't know how to render nodes
+  vstContent.OnGetText := vstContentGetText;
+  vstContent.OnFreeNode := vstContentFreeNode;
+
+  vstRawXmlStructure.OnGetText := vstRawXmlStructureGetText;
+  vstRawXmlStructure.OnFreeNode := vstRawXmlStructureFreeNode;
+  // --- End TVirtualStringTree Event Assignments ---
 end;
 
 procedure TfrmMain.SetPresenter(const APresenter: IXmlEditorPresenter);
@@ -141,15 +160,64 @@ begin
 end;
 
 procedure TfrmMain.UpdateXmlTree(const AXmlRootNode: IXmlNode);
+// Helper procedure to recursively add nodes to the VST
+procedure AddNodesToTree(Tree: TBaseVirtualTree; ParentNode: PVirtualNode; XmlNode: IXmlNode);
+var
+  VSTNode: PVirtualNode;
+  ChildXmlNode: IXmlNode;
+  AttributeXmlNode: IXmlAttribute;
 begin
-  // This is where the TVirtualStringTree population logic will go.
-  // For now, we'll just ensure VSTs are cleared or refreshed.
-  // The actual population logic will come later, it will be shared for vstContent and vstRawXmlStructure.
-  vstContent.Clear; // Example for main VST
-  vstRawXmlStructure.Clear; // Example for raw view VST
-  // If Assigned(AXmlRootNode) then
-  //   You would start populating vstContent / vstRawXmlStructure here based on the root node
-  ShowMessage('XML tree structure updated.');
+  if not Assigned(XmlNode) then Exit;
+
+  // Create a new VST node and associate it with the IXmlNode
+  VSTNode := Tree.AddChild(ParentNode, nil); // Data will be set below
+  Tree.SetNodeData(VSTNode, Pointer(XmlNode)); // Store the IXmlNode directly
+
+  // Add attributes as children under element nodes
+  if XmlNode.NodeType = xntElement then
+  begin
+    for AttributeXmlNode in XmlNode.Attributes do
+    begin
+      // Add attribute as child of element in VST
+      VSTNode := Tree.AddChild(VSTNode, nil);
+      // Store the IXmlAttribute (which now also implements IXmlNode)
+      Tree.SetNodeData(VSTNode, Pointer(AttributeXmlNode as IXmlNode));
+    end;
+  end;
+
+  // Recursively add child XML nodes
+  for ChildXmlNode in XmlNode.ChildNodes do
+  begin
+    // Skip empty text nodes for a cleaner tree display (optional, based on preference)
+    if (ChildXmlNode.NodeType = xntText) and (Trim(ChildXmlNode.Value) = '') then
+      Continue;
+
+    AddNodesToTree(Tree, VSTNode, ChildXmlNode); // Recursive call
+  end;
+end;
+
+begin
+  // Clear both trees before populating to ensure a fresh display
+  vstContent.Clear;
+  vstRawXmlStructure.Clear;
+
+  if Assigned(AXmlRootNode) then
+  begin
+    // Add the root node to vstContent
+    AddNodesToTree(vstContent, nil, AXmlRootNode); // nil for ParentNode means it's a root VST node
+    vstContent.FullExpand; // Optional: expands the tree fully on load, showing all nodes
+
+    // Add the root node to vstRawXmlStructure (if it's meant to show the same tree structure)
+    // For now, we populate it similarly to vstContent.
+    AddNodesToTree(vstRawXmlStructure, nil, AXmlRootNode);
+    vstRawXmlStructure.FullExpand; // Optional: expands the tree fully on load
+
+    ShowMessage('XML tree structure updated with ' + AXmlRootNode.Name + ' as root.');
+  end
+  else
+  begin
+    ShowMessage('XML tree structure cleared (no root node).');
+  end;
 end;
 
 procedure TfrmMain.UpdateRawXml(const AXmlString: string);
@@ -201,17 +269,17 @@ end;
 function TfrmMain.GetSelectedTreeNode: IXmlNode;
 begin
   Result := nil;
-  // This will be crucial for node manipulation.
-  // When TVirtualStringTree is implemented, you'll get the IXmlNode
-  // from the selected node's data. This will apply to whichever VST is active.
-  // Example for VST:
-  // if Assigned(vstContent.FocusedNode) then // Use FocusedNode or Selected[0]
-  //   Result := (vstContent.GetNodeData(vstContent.FocusedNode) as IXmlNode);
+  // Get the selected node from the currently visible VST
+  if pnlVstView.Visible and Assigned(vstContent.FocusedNode) then
+    Result := GetXmlNodeFromVSTNode(vstContent, vstContent.FocusedNode)
+  else if pnlRawView.Visible and Assigned(vstRawXmlStructure.FocusedNode) then
+    Result := GetXmlNodeFromVSTNode(vstRawXmlStructure, vstRawXmlStructure.FocusedNode);
 end;
 
 procedure TfrmMain.SetRawViewPanelVisibility(AVisible: Boolean);
 begin
   pnlRawView.Visible := AVisible;
+  splRawView.Visible := AVisible; // Show splitter when raw view is visible
 end;
 
 procedure TfrmMain.SetVSTViewPanelVisibility(AVisible: Boolean);
@@ -267,8 +335,8 @@ end;
 
 procedure TfrmMain.miOptAdElemClick(Sender: TObject);
 begin
-  // This will be handled by sub-menus (Before, After, Child)
-  // For now, this is a placeholder if this top-level item could also be clicked.
+  // This top-level item typically acts as a parent for sub-menus.
+  // If it could be clicked directly and you want an action, add FPresenter.AddNode here
 end;
 
 procedure TfrmMain.miOptAdAttriClick(Sender: TObject);
@@ -309,14 +377,31 @@ end;
 
 procedure TfrmMain.miOptExpClick(Sender: TObject);
 begin
-  // This might be handled directly by VST or via a specific presenter method
-  // if Assigned(vstContent.FocusedNode) then vstContent.ExpandNode(vstContent.FocusedNode);
+  // This will expand the current tree based on which VST is visible and has focus.
+  // FullExpand has an overload that takes a node, which is what we want here.
+  if vstContent.Visible and Assigned(vstContent.FocusedNode) then
+    vstContent.FullExpand(vstContent.FocusedNode) // Expand node and its children
+  else if vstRawXmlStructure.Visible and Assigned(vstRawXmlStructure.FocusedNode) then
+    vstRawXmlStructure.FullExpand(vstRawXmlStructure.FocusedNode);
+end;
+
+procedure CollapseFromNode(VST: TVirtualStringTree; Node: PVirtualNode);
+begin
+  while Assigned(Node) do
+  begin
+    VST.Expanded[Node] := False; // Collapse the current node
+    if Assigned(Node.FirstChild) then
+      CollapseFromNode(VST, Node.FirstChild); // Recursively call for its first child
+    Node := Node.NextSibling; // Move to the next sibling
+  end;
 end;
 
 procedure TfrmMain.miOptClpsClick(Sender: TObject);
 begin
-  // This might be handled directly by VST or via a specific presenter method
-  // if Assigned(vstContent.FocusedNode) then vstContent.CollapseNode(vstContent.FocusedNode);
+  if vstContent.Visible and Assigned(vstContent.FocusedNode) then
+    CollapseFromNode(vstContent, vstContent.FocusedNode)
+  else if vstRawXmlStructure.Visible and Assigned(vstRawXmlStructure.FocusedNode) then
+    CollapseFromNode(vstRawXmlStructure, vstRawXmlStructure.FocusedNode);
 end;
 
 procedure TfrmMain.miOptAdElmBfrClick(Sender: TObject);
@@ -335,6 +420,64 @@ procedure TfrmMain.miOptAdElmCldClick(Sender: TObject);
 begin
   if Assigned(FPresenter) then
     FPresenter.AddNode; // Presenter will need context for 'Element Child'
+end;
+
+// --- TVirtualStringTree Event Implementations ---
+
+procedure TfrmMain.vstContentGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  XmlNode: IXmlNode;
+begin
+  XmlNode := GetXmlNodeFromVSTNode(Sender, Node);
+  if Assigned(XmlNode) then
+  begin
+    case Column of
+      0: // First column: Node Name/Type
+        begin
+          case XmlNode.NodeType of
+            xntElement: CellText := XmlNode.Name;
+            xntAttribute: CellText := '@' + XmlNode.Name; // Prefix for attributes
+            xntText: CellText := '#text';
+            xntCData: CellText := '#cdata';
+            xntComment: CellText := '#comment'; // Display as comment type
+            xntProcessingInstruction: CellText := '<?' + XmlNode.Name + '?>';
+            xntDocument: CellText := '#document'; // For the root document node
+            xntDocumentType: CellText := '#doctype';
+            xntEntityRef: CellText := '&' + XmlNode.Name + ';';
+            xntNotation: CellText := '#notation';
+            else CellText := XmlNode.Name; // Fallback for unknown/unhandled types
+          end;
+        end;
+      1: // Second column: Node Value (if applicable)
+        begin
+          if (XmlNode.NodeType = xntElement) and (XmlNode.Value <> '') then
+            CellText := XmlNode.Value // Display element text value if it has one
+          else if (XmlNode.NodeType in [xntText, xntCData, xntComment, xntProcessingInstruction, xntAttribute]) then
+            CellText := XmlNode.Value; // Display value for other types that have values
+        end;
+    end;
+  end;
+end;
+
+procedure TfrmMain.vstContentFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  XmlNode: IXmlNode;
+begin
+  // Crucial for releasing the interface reference and avoiding memory leaks.
+  XmlNode := GetXmlNodeFromVSTNode(Sender, Node);
+  if Assigned(XmlNode) then
+    XmlNode := nil; // Decrement reference count; object will be freed when count reaches zero.
+end;
+
+// Event handlers for vstRawXmlStructure (copied from vstContent for now)
+procedure TfrmMain.vstRawXmlStructureGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+begin
+  vstContentGetText(Sender, Node, Column, TextType, CellText);
+end;
+
+procedure TfrmMain.vstRawXmlStructureFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  vstContentFreeNode(Sender, Node);
 end;
 
 end.
