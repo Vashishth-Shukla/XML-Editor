@@ -22,6 +22,7 @@ object frmMain: TfrmMain
     Header.AutoSizeIndex = 0
     Header.Height = 15
     Header.MainColumn = -1
+    PopupMenu = popOpt
     TabOrder = 0
     Touch.InteractiveGestures = [igPan, igPressAndTap]
     Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
