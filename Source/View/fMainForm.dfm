@@ -82,12 +82,15 @@ object frmMain: TfrmMain
       OnClick = miOptAdElemClick
       object miOptAdElmBfr: TMenuItem
         Caption = 'Before'
+        OnClick = miOptAdElmBfrClick
       end
       object miOptAdElmAft: TMenuItem
         Caption = 'After'
+        OnClick = miOptAdElmAftClick
       end
       object miOptAdElmCld: TMenuItem
         Caption = 'Child'
+        OnClick = miOptAdElmCldClick
       end
     end
     object miOptAdAttri: TMenuItem
@@ -108,6 +111,7 @@ object frmMain: TfrmMain
     end
     object miOptAdProIns: TMenuItem
       Caption = 'Add Process Instructions'
+      Enabled = False
       OnClick = miOptAdProInsClick
     end
     object N1: TMenuItem

@@ -175,8 +175,11 @@ procedure TfrmMain.UpdateXmlTree(const AXmlRootNode: IXmlNode);
 
     for i := 0 to XmlNode.AttributeCount - 1 do
       AddTreeNode(XmlNode.Attributes(i), Node);
-    for i := 0 to XmlNode.ChildNodeCount - 1 do
-      AddTreeNode(XmlNode.ChildNodes(i), Node);
+    if XmlNode.NodeType <> xntAttribute then
+    begin
+      for i := 0 to XmlNode.ChildNodeCount - 1 do
+        AddTreeNode(XmlNode.ChildNodes(i), Node);
+    end;
   end;
 begin
   vstContent.Clear;
@@ -252,7 +255,7 @@ end;
 
 procedure TfrmMain.miOptAdElemClick(Sender: TObject);
 begin
-  if Assigned(FPresenter) then FPresenter.AddNode(xntElement);
+  // open submenu
 end;
 
 procedure TfrmMain.miOptAdAttriClick(Sender: TObject);
