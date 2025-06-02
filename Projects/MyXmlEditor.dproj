@@ -136,19 +136,17 @@
         </DelphiCompile>
         <DCCReference Include="..\Source\View\fMainForm.pas">
             <Form>frmMain</Form>
+            <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="..\Source\Model\Interfaces\uIXmlAttribute.pas"/>
-        <DCCReference Include="..\Source\Model\Interfaces\uIXmlNode.pas"/>
+        <DCCReference Include="..\Source\Presenter\uIXmlEditorPresenter.pas"/>
+        <DCCReference Include="..\Source\Presenter\uXmlEditorPresenter.pas"/>
+        <DCCReference Include="..\Source\Model\Interfaces\uIXmlAdapterFactory.pas"/>
+        <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlAdapterFactory.pas"/>
         <DCCReference Include="..\Source\Model\Interfaces\UIXmlDocument.pas"/>
-        <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlAttributeMsXmlAdapter.pas"/>
+        <DCCReference Include="..\Source\Model\Interfaces\uIXmlNode.pas"/>
         <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlDocumentMsXmlAdapter.pas"/>
         <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlNodeMsXmlAdapter.pas"/>
         <DCCReference Include="..\Source\Model\DataTypes\uXmlCommon.pas"/>
-        <DCCReference Include="..\Source\Model\Interfaces\uIXmlAdapterFactory.pas"/>
-        <DCCReference Include="..\Source\Model\Adapters\MsXmlAdapter\uXmlAdapterFactory.pas"/>
-        <DCCReference Include="..\Source\Presenter\uIXmlEditorPresenter.pas"/>
-        <DCCReference Include="..\Source\Presenter\uXmlEditorPresenter.pas"/>
-        <DCCReference Include="..\Source\View\uIMainForm.pas"/>
         <None Include="MyXmlEditor.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

@@ -3,324 +3,159 @@ unit uXmlEditorPresenter;
 interface
 
 uses
-  System.SysUtils,     // For general utilities and exceptions
-  System.IOUtils,      // For TPath etc.
-  uIXmlEditorPresenter,  // Our presenter interface
-  uIXmlDocument,       // Our core XML document interface
-  uIXmlAdapterFactory,   // Our factory for creating IXmlDocument
-  uIMainForm;          // <--- IMPORTANT: Directly use the interface unit
+  uIXmlEditorPresenter, uIXmlNode, uIXmlDocument, uIXmlAdapterFactory, uXmlCommon, System.SysUtils;
 
 type
-  // The concrete implementation of the XML Editor Presenter.
-  // It handles all application logic, interacting with the View and the Model.
   TXmlEditorPresenter = class(TInterfacedObject, IXmlEditorPresenter)
   private
-    FView: IMainFormView;           // Reference to the UI (form) via its interface
-    FFactory: IXmlAdapterFactory;   // Reference to the XML document factory
-    FDocument: IXmlDocument;        // The currently loaded XML document
-    FCurrentFilePath: string;       // Stores the path of the current file
-    FIsDirty: Boolean;              // Tracks if the document has unsaved changes
-
-    // Helper method to check for unsaved changes before performing an action
-    function ConfirmDiscardChanges: Boolean;
-
-    // Helper methods to update both UI views (raw XML and tree view)
-    procedure UpdateUIFromModel;
-    procedure UpdateRawXmlView;
-    procedure UpdateTreeView;
-
+    FView: IMainFormView;
+    FDoc: IXmlDocument;
+    FFactory: IXmlAdapterFactory;
+    FCurrentFileName: string;
   public
-    // Constructor: Takes the View and the Factory as dependencies
-    constructor Create(const AView: IMainFormView; const AFactory: IXmlAdapterFactory);
+    constructor Create(const AFactory: IXmlAdapterFactory);
+    procedure SetView(const AView: IMainFormView);
 
-    // IXmlEditorPresenter implementation (from uIXmlEditorPresenter.pas)
     procedure NewXml;
     procedure OpenXml;
-    procedure LoadXml; // This will read from memRawXml
     procedure SaveXml;
     procedure SaveAsXml;
     procedure ExitApp;
-    procedure AddNode;
+    procedure AddNode(NodeType: TXmlNodeType = xntElement);
     procedure RemoveNode;
-    procedure EditNode;
-    procedure RefreshRawXml;
-    procedure ToggleView;
   end;
 
 implementation
 
 uses
-  System.UIConsts, // For sConfirmation, sYes, sNo
-  Vcl.Forms;       // ADDED Vcl.Forms for Application object
+  System.Classes;
 
-{ TXmlEditorPresenter }
-
-constructor TXmlEditorPresenter.Create(const AView: IMainFormView; const AFactory: IXmlAdapterFactory);
+constructor TXmlEditorPresenter.Create(const AFactory: IXmlAdapterFactory);
 begin
   inherited Create;
-  FView := AView;
   FFactory := AFactory;
-  FDocument := FFactory.CreateDocument; // Create an initial empty document
-  FIsDirty := False;
-  FCurrentFilePath := '';
-  FView.ShowMessage('Ready.');
-  UpdateUIFromModel; // Initialize UI with empty document
 end;
 
-function TXmlEditorPresenter.ConfirmDiscardChanges: Boolean;
+procedure TXmlEditorPresenter.SetView(const AView: IMainFormView);
 begin
-  Result := True; // Assume user wants to proceed
-  if FIsDirty then
-  begin
-    FView.ShowMessage('Document has unsaved changes. Confirm discard.');
-    Result := FView.ShowConfirmationDialog(
-      'Current XML has unsaved changes. Do you want to discard them?',
-      'Unsaved Changes');
-  end;
+  FView := AView;
 end;
 
 procedure TXmlEditorPresenter.NewXml;
 begin
-  if not ConfirmDiscardChanges then Exit;
-
-  FDocument := FFactory.CreateDocument; // Create a new empty document instance
-  FDocument.CreateNew('root');          // Create a basic root element for the new document
-  FIsDirty := True;                     // Mark as dirty
-  FCurrentFilePath := '';
-  FView.ShowMessage('New XML document created.');
-  UpdateUIFromModel;                    // Update UI to reflect the new document
+  FDoc := FFactory.CreateDocument;
+  FDoc.CreateEmpty('root');
+  FCurrentFileName := '';
+  FView.UpdateXmlTree(FDoc.GetRoot);
 end;
 
 procedure TXmlEditorPresenter.OpenXml;
 var
-  FilePath: string;
+  FileName: string;
 begin
-  if not ConfirmDiscardChanges then Exit;
-
-  FilePath := FView.OpenFileDialog('XML Files (*.xml)|*.xml|All Files (*.*)|*.*');
-  if FilePath <> '' then
+  FileName := FView.OpenFileDialog('XML Files|*.xml');
+  if FileName <> '' then
   begin
-    try
-      FDocument := FFactory.CreateDocument; // Create a fresh document for loading
-      if FDocument.LoadFromFile(FilePath) then
-      begin
-        FCurrentFilePath := FilePath;
-        FIsDirty := False;
-        FView.ShowMessage(Format('XML loaded from "%s".', [FilePath]));
-        UpdateUIFromModel;
-      end
-      else // <--- THIS 'else' NO LONGER HAS A MISSING SEMICOLON (it's part of the if/else)
-      begin
-        // FDocument.LoadFromFile already raises EXmlAdapterException for parsing errors
-        FView.ShowMessage(Format('Failed to load XML from "%s". Check file format.', [FilePath]));
-      end; // This semicolon is correct as it ends the if/else block
-    except
-      on E: Exception do
-        FView.ShowMessage(Format('Error loading XML: %s', [E.Message]));
-    end; // This semicolon is correct as it ends the try/except block
-  end
-  else
-    FView.ShowMessage('Open operation cancelled.');
-end;
-
-procedure TXmlEditorPresenter.LoadXml; // This will load XML from the raw text memo
-var
-  XmlString: string;
-begin
-  // For now, this is assumed to be a "re-parse" of the text in the memo
-  // In a real editor, this might be triggered by a "Parse" button next to the memo
-  XmlString := FView.GetRawXmlString;
-  if XmlString = '' then
-  begin
-    FView.ShowMessage('Raw XML memo is empty. Nothing to load.');
-    Exit;
-  end;
-
-  try
-    // Temporarily create a new document to load the string
-    // If successful, replace the current FDocument
-    var TempDoc := FFactory.CreateDocument;
-    if TempDoc.LoadFromString(XmlString) then
+    FDoc := FFactory.CreateDocument;
+    if FDoc.LoadFromFile(FileName) then
     begin
-      FDocument := TempDoc; // Replace the current document
-      FIsDirty := True; // Assume any manual loading from memo makes it dirty
-      FView.ShowMessage('XML loaded from raw text.');
-      UpdateUIFromModel;
+      FCurrentFileName := FileName;
+      FView.UpdateXmlTree(FDoc.GetRoot);
     end
-    else // <--- THIS 'else' NO LONGER HAS A MISSING SEMICOLON (it's part of the if/else)
-    begin
-      // FDocument.LoadFromString already raises EXmlAdapterException for parsing errors
-      FView.ShowMessage('Failed to load XML from raw text. Check XML format.');
-    end; // This semicolon is correct as it ends the if/else block
-  except
-    on E: Exception do
-      FView.ShowMessage(Format('Error parsing raw XML: %s', [E.Message]));
+    else
+      FView.ShowMessage('Failed to load XML file.');
   end;
 end;
-
 
 procedure TXmlEditorPresenter.SaveXml;
 begin
-  if not Assigned(FDocument) or not Assigned(FDocument.Root) then
+  if Assigned(FDoc) then
   begin
-    FView.ShowMessage('No XML document to save.');
-    Exit;
-  end;
-
-  if FCurrentFilePath = '' then
-  begin
-    SaveAsXml; // If no path, call SaveAs
-  end
-  else
-  begin
-    try
-      // Ensure the raw XML memo's content is the source for saving if it's visible/active
-      if FView.IsRawViewPanelVisible then
-      begin
-        // If raw view is visible, parse its content into the document before saving
-        // This implicitly handles a user making changes in the raw memo and saving directly.
-        // It will raise an exception if the raw XML is invalid.
-        FDocument.LoadFromString(FView.GetRawXmlString);
-        FIsDirty := True; // Mark as dirty if re-parsed (even if successful, it was edited)
-      end;
-
-      if FDocument.SaveToFile(FCurrentFilePath) then
-      begin
-        FIsDirty := False;
-        FView.ShowMessage(Format('XML saved to "%s".', [FCurrentFilePath]));
-      end
-      else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
-      begin
-        FView.ShowMessage(Format('Failed to save XML to "%s".', [FCurrentFilePath]));
-      end;
-    except
-      on E: Exception do
-        FView.ShowMessage(Format('Error saving XML: %s', [E.Message]));
-    end;
+    if FCurrentFileName = '' then
+      SaveAsXml
+    else
+      FDoc.SaveToFile(FCurrentFileName);
   end;
 end;
 
 procedure TXmlEditorPresenter.SaveAsXml;
 var
-  FilePath: string;
+  FileName: string;
 begin
-  if not Assigned(FDocument) or not Assigned(FDocument.Root) then
+  if Assigned(FDoc) then
   begin
-    FView.ShowMessage('No XML document to save.');
-    Exit;
-  end;
-
-  FilePath := FView.SaveFileDialog('XML Files (*.xml)|*.xml|All Files (*.*)|*.*');
-  if FilePath <> '' then
-  begin
-    try
-      // Ensure the raw XML memo's content is the source for saving if it's visible/active
-      if FView.IsRawViewPanelVisible then
-      begin
-        FDocument.LoadFromString(FView.GetRawXmlString); // Re-parse raw text before saving
-        FIsDirty := True; // Mark as dirty if re-parsed
-      end;
-
-      if FDocument.SaveToFile(FilePath) then
-      begin
-        FCurrentFilePath := FilePath; // Update current file path
-        FIsDirty := False;
-        FView.ShowMessage(Format('XML saved as "%s".', [FilePath]));
-      end
-      else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
-      begin
-        FView.ShowMessage(Format('Failed to save XML as "%s".', [FilePath]));
-      end;
-    except
-      on E: Exception do
-        FView.ShowMessage(Format('Error saving XML: %s', [E.Message]));
+    FileName := FView.SaveFileDialog('XML Files|*.xml');
+    if FileName <> '' then
+    begin
+      FDoc.SaveToFile(FileName);
+      FCurrentFileName := FileName;
     end;
-  end
-  else
-    FView.ShowMessage('Save As operation cancelled.');
+  end;
 end;
 
 procedure TXmlEditorPresenter.ExitApp;
 begin
-  if ConfirmDiscardChanges then
-    Application.Terminate // <--- ADDED SEMICOLON HERE
-  else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
-    FView.ShowMessage('Exit cancelled.');
+  Halt;
 end;
 
-procedure TXmlEditorPresenter.AddNode;
+procedure TXmlEditorPresenter.AddNode(NodeType: TXmlNodeType);
+var
+  Selected, NewNode: IXmlNode;
 begin
-  // Placeholder. Real implementation will involve getting selected node,
-  // prompting for node details (name, type, value), and calling FDocument.CreateNode
-  // or FDocument.Root.AddChild / FDocument.Root.AddAttribute etc.
-  FView.ShowMessage('Add Node functionality not yet implemented.');
-  FIsDirty := True; // Assume any node change makes it dirty
-  UpdateUIFromModel;
+  if not Assigned(FDoc) then
+  begin
+    FView.ShowMessage('No active document. Please create or open one.');
+    Exit;
+  end;
+
+  Selected := FView.GetSelectedTreeNode;
+  if not Assigned(Selected) then
+  begin
+    Selected := FDoc.GetRoot;
+    if not Assigned(Selected) then
+    begin
+      FView.ShowMessage('No valid root node to insert into.');
+      Exit;
+    end;
+  end;
+
+  // Create a new node manually based on type
+  NewNode := FFactory.CreateDocument.GetRoot; // temporary reuse, ideally replace to CreateNode
+  if not Assigned(NewNode) then
+  begin
+    FView.ShowMessage('Failed to create a new node.');
+    Exit;
+  end;
+
+  case NodeType of
+    xntElement:
+      begin
+        NewNode.SetNodeValue('NewElement');
+      end;
+    xntComment:
+      begin
+        NewNode.SetNodeValue('Comment');
+      end;
+    xntText:
+      begin
+        NewNode.SetNodeValue('Text');
+      end;
+    xntAttribute:
+      begin
+        NewNode.SetNodeValue('Value');
+      end;
+    else
+      NewNode.SetNodeValue('Node');
+  end;
+
+  Selected.AppendChild(NewNode);
+  FView.UpdateXmlTree(FDoc.GetRoot);
 end;
 
 procedure TXmlEditorPresenter.RemoveNode;
 begin
-  // Placeholder. Real implementation will involve getting selected node,
-  // confirming deletion, and calling FDocument.Root.RemoveChild or similar.
-  FView.ShowMessage('Remove Node functionality not yet implemented.');
-  FIsDirty := True; // Assume any node change makes it dirty
-  UpdateUIFromModel;
-end;
-
-procedure TXmlEditorPresenter.EditNode;
-begin
-  // Placeholder. Real implementation will involve getting selected node,
-  // prompting for new details, and updating FDocument properties.
-  FView.ShowMessage('Edit Node functionality not yet implemented.');
-  FIsDirty := True; // Assume any node change makes it dirty
-  UpdateUIFromModel;
-end;
-
-procedure TXmlEditorPresenter.RefreshRawXml;
-begin
-  // This is where you would refresh the raw XML memo based on the current model state.
-  UpdateRawXmlView;
-  FView.ShowMessage('Raw XML view refreshed from model.');
-end;
-
-procedure TXmlEditorPresenter.ToggleView;
-begin
-  if FView.IsRawViewPanelVisible then
-  begin
-    FView.SetRawViewPanelVisibility(False);
-    FView.SetVSTViewPanelVisibility(True);
-    FView.ShowMessage('Switched to Virtual String Tree view.');
-  end
-  else // <--- NO SEMICOLON HERE IS CORRECT (it's part of the if/else block)
-  begin
-    FView.SetVSTViewPanelVisibility(False);
-    FView.SetRawViewPanelVisibility(True);
-    FView.ShowMessage('Switched to Raw XML view.');
-  end; // This semicolon is correct as it ends the if/else block
-  UpdateUIFromModel; // This statement correctly follows the if/else block
-end;
-
-procedure TXmlEditorPresenter.UpdateUIFromModel;
-begin
-  // Update both views based on the current FDocument state
-  UpdateRawXmlView;
-  UpdateTreeView;
-end;
-
-procedure TXmlEditorPresenter.UpdateRawXmlView;
-begin
-  if Assigned(FDocument) and Assigned(FDocument.Root) then
-    FView.UpdateRawXml(FDocument.SaveToString)
-  else
-    FView.UpdateRawXml(''); // Clear if no document or root
-end;
-
-procedure TXmlEditorPresenter.UpdateTreeView;
-begin
-  if Assigned(FDocument) then
-    FView.UpdateXmlTree(FDocument.Root) // Pass the root node to the view
-  else
-    FView.UpdateXmlTree(nil); // Clear if no document
+  FView.ShowMessage('RemoveNode not implemented yet.');
 end;
 
 end.
+

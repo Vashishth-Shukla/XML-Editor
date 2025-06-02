@@ -3,28 +3,32 @@ unit uIXmlEditorPresenter;
 interface
 
 uses
-  System.Rtti; // For [ComponentPlatform(TRESTCategory.All)] if you're using it
+  uIXmlNode, uIXmlDocument, uXmlCommon;
 
 type
-  // Interface for the XML Editor Presenter
-  // This defines the contract between the View (fMainForm) and the Presenter logic.
-  [ComponentPlatform(TRESTCategory.All)] // Optional: Keep if consistent with your project
+  IMainFormView = interface
+    ['{5D34C159-A6FB-4D86-93C5-66D70A4A5FA6}']
+    procedure ShowMessage(const AMessage: string);
+    procedure UpdateXmlTree(const AXmlRootNode: IXmlNode);
+    function OpenFileDialog(const AFilter: string): string;
+    function SaveFileDialog(const AFilter: string): string;
+    function ShowConfirmationDialog(const AMessage, ACaption: string): Boolean;
+    function GetSelectedTreeNode: IXmlNode;
+  end;
+
   IXmlEditorPresenter = interface
-    ['{87AD9D6C-F1D7-4064-AE75-DDB8383680A4}']
+    ['{8C58F0E3-0D72-4E0A-8E31-CA108A74A126}']
+    procedure SetView(const AView: IMainFormView);
     procedure NewXml;
     procedure OpenXml;
-    procedure LoadXml; // For loading from the raw text memo
     procedure SaveXml;
     procedure SaveAsXml;
-    procedure ExitApp; // Handles application exit logic
-    procedure AddNode;
+    procedure ExitApp;
+    procedure AddNode(NodeType: TXmlNodeType = xntElement);
     procedure RemoveNode;
-    procedure EditNode;
-    procedure RefreshRawXml; // To update memRawXml from the tree/model
-    procedure ToggleView; // To switch between VST and raw view
-    // Other methods will be added as needed for detailed node manipulation (e.g., specific AddElementBefore, AddAttribute, etc.)
   end;
 
 implementation
 
 end.
+
