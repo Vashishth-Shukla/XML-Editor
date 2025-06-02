@@ -94,6 +94,22 @@ begin
   vstContent.TreeOptions.MiscOptions := [toEditable];
   vstContent.Header.Columns.Clear;
 
+  // Enable tree painting options
+  vstContent.TreeOptions.PaintOptions := [
+    toShowHorzGridLines,
+    toShowVertGridLines,
+    toShowTreeLines,
+    toShowButtons
+  ];
+
+  // Enable drag, edit, expand etc. if needed
+  vstContent.TreeOptions.MiscOptions := [
+    toEditable,
+    toToggleOnDblClick,
+    toFullRepaintOnResize,
+    toGridExtensions
+  ];
+
   with vstContent.Header.Columns.Add do
   begin
     Text := 'Name';
