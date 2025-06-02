@@ -26,10 +26,15 @@ type
     miOptAdCDT: TMenuItem;
     miOptAdProIns: TMenuItem;
     miOptDlt: TMenuItem;
+    miFileNew: TMenuItem;
+    miOptAdElmBfr: TMenuItem;
+    miOptAdElmAft: TMenuItem;
+    miOptAdElmCld: TMenuItem;
 
     procedure FormCreate(Sender: TObject);
+    procedure miFileNewClick(Sender: TObject);
     procedure vstContentGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
-    procedure vstContentGetTextColor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var Color: TColor);
+    procedure vstContentGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure miOptAdElemClick(Sender: TObject);
     procedure miOptAdAttriClick(Sender: TObject);
     procedure miOptAdTxtClick(Sender: TObject);
@@ -41,7 +46,9 @@ type
     procedure miFileSaveAsClick(Sender: TObject);
     procedure miFileExitClick(Sender: TObject);
     procedure miOptDltClick(Sender: TObject);
-    procedure miFileNewClick(Sender: TObject);
+    procedure miOptAdElmBfrClick(Sender: TObject);
+    procedure miOptAdElmAftClick(Sender: TObject);
+    procedure miOptAdElmCldClick(Sender: TObject);
 
   private
     FPresenter: IXmlEditorPresenter;
@@ -77,47 +84,35 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   InitializeTree;
   vstContent.PopupMenu := popOpt;
-
-  // Hook File menu
-  miFileOpen.OnClick := miFileOpenClick;
-  miFileSave.OnClick := miFileSaveClick;
-  miFileSaveAs.OnClick := miFileSaveAsClick;
-  miFileExit.OnClick := miFileExitClick;
-
-  // Hook context menu submenu items (extended)
-  miOptAdElem.OnClick := miOptAdElemClick;
-  miOptAdAttri.OnClick := miOptAdAttriClick;
-  miOptAdTxt.OnClick := miOptAdTxtClick;
-  miOptAdCmt.OnClick := miOptAdCmtClick;
-  miOptAdCDT.OnClick := miOptAdCDTClick;
-  miOptAdProIns.OnClick := miOptAdProInsClick;
-  vstContent.PopupMenu := popOpt;
-  miFileOpen.OnClick := miFileOpenClick;
-  miFileSave.OnClick := miFileSaveClick;
-  miFileSaveAs.OnClick := miFileSaveAsClick;
-  miFileExit.OnClick := miFileExitClick;
-  vstContent.PopupMenu := popOpt;
 end;
 
 procedure TfrmMain.InitializeTree;
 begin
   vstContent.NodeDataSize := SizeOf(TNodeData);
-  vstContent.Header.Options := [hoVisible];
+  vstContent.Header.Options := [hoVisible, hoAutoResize, hoColumnResize];
   vstContent.TreeOptions.PaintOptions := [toShowHorzGridLines, toShowVertGridLines];
   vstContent.TreeOptions.MiscOptions := [toEditable];
   vstContent.Header.Columns.Clear;
+
   with vstContent.Header.Columns.Add do
   begin
     Text := 'Name';
     Width := 200;
   end;
+
   with vstContent.Header.Columns.Add do
   begin
     Text := 'Value';
     Width := 300;
   end;
+
   vstContent.OnGetText := vstContentGetText;
-  // vstContent.OnGetTextColor := vstContentGetTextColor;
+  vstContent.OnGetNodeDataSize := vstContentGetNodeDataSize;
+end;
+
+procedure TfrmMain.vstContentGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TNodeData);
 end;
 
 function TfrmMain.GetXmlNodeFrom(Node: PVirtualNode): IXmlNode;
@@ -153,6 +148,7 @@ procedure TfrmMain.UpdateXmlTree(const AXmlRootNode: IXmlNode);
     Node := vstContent.AddChild(Parent);
     Data := vstContent.GetNodeData(Node);
     Data^.Xml := XmlNode;
+
     for i := 0 to XmlNode.AttributeCount - 1 do
       AddTreeNode(XmlNode.Attributes(i), Node);
     for i := 0 to XmlNode.ChildNodeCount - 1 do
@@ -230,27 +226,6 @@ begin
   end;
 end;
 
-procedure TfrmMain.vstContentGetTextColor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var Color: TColor);
-var
-  Data: PNodeData;
-  Xml: IXmlNode;
-begin
-  if Column <> 0 then Exit;
-  Data := Sender.GetNodeData(Node);
-  if Assigned(Data) then
-  begin
-    Xml := Data.Xml;
-    case Xml.NodeType of
-      xntElement: Color := clNavy;
-      xntAttribute: Color := clGreen;
-      xntComment: Color := clGray;
-      xntText, xntCData: Color := clBlack;
-    else
-      Color := clWindowText;
-    end;
-  end;
-end;
-
 procedure TfrmMain.miOptAdElemClick(Sender: TObject);
 begin
   if Assigned(FPresenter) then FPresenter.AddNode(xntElement);
@@ -264,11 +239,6 @@ end;
 procedure TfrmMain.miOptAdTxtClick(Sender: TObject);
 begin
   if Assigned(FPresenter) then FPresenter.AddNode(xntText);
-end;
-
-procedure TfrmMain.miOptDltClick(Sender: TObject);
-begin
-  if Assigned(FPresenter) then FPresenter.RemoveNode;
 end;
 
 procedure TfrmMain.miOptAdCmtClick(Sender: TObject);
@@ -286,6 +256,25 @@ begin
   if Assigned(FPresenter) then FPresenter.AddNode(xntProcessingInstruction);
 end;
 
+procedure TfrmMain.miOptAdElmBfrClick(Sender: TObject);
+begin
+  if Assigned(FPresenter) then FPresenter.AddNodeBefore(xntElement);
+end;
+
+procedure TfrmMain.miOptAdElmAftClick(Sender: TObject);
+begin
+  if Assigned(FPresenter) then FPresenter.AddNodeAfter(xntElement);
+end;
+
+procedure TfrmMain.miOptAdElmCldClick(Sender: TObject);
+begin
+  if Assigned(FPresenter) then FPresenter.AddNodeChild(xntElement);
+end;
+
+procedure TfrmMain.miOptDltClick(Sender: TObject);
+begin
+  if Assigned(FPresenter) then FPresenter.RemoveNode;
+end;
 
 procedure TfrmMain.miFileOpenClick(Sender: TObject);
 begin

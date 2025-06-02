@@ -24,7 +24,11 @@ type
     procedure SaveXml;
     procedure SaveAsXml;
     procedure ExitApp;
+
     procedure AddNode(NodeType: TXmlNodeType = xntElement);
+    procedure AddNodeBefore(NodeType: TXmlNodeType);
+    procedure AddNodeAfter(NodeType: TXmlNodeType);
+    procedure AddNodeChild(NodeType: TXmlNodeType);
     procedure RemoveNode;
   end;
 

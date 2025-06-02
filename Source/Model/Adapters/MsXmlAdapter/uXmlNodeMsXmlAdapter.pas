@@ -27,8 +27,15 @@ type
 
     function AsText: string;
     procedure AppendChild(const ANode: IXmlNode);
-    procedure InsertBefore(const ANode: IXmlNode);
-    procedure InsertAfter(const ANode: IXmlNode);
+
+    procedure InsertBefore(const ANode: IXmlNode); overload;
+    procedure InsertAfter(const ANode: IXmlNode); overload;
+    procedure InsertBefore(const NewChild, RefChild: IXmlNode); overload;
+    procedure InsertAfter(const NewChild, RefChild: IXmlNode); overload;
+
+    procedure Remove;
+    function ParentNode: IXmlNode;
+    function CreateChild(NodeType: TXmlNodeType; const Name, Value: string): IXmlNode;
   end;
 
 implementation
@@ -154,7 +161,7 @@ end;
 procedure TXmlNodeMsXmlAdapter.InsertBefore(const ANode: IXmlNode);
 var
   ParentNode: IXMLDOMNode;
-  NewDom: IXMLDOMNode;
+  CloneDom: IXMLDOMNode;
   SourceAdapter: TXmlNodeMsXmlAdapter;
 begin
   if not Assigned(FDomNode) then Exit;
@@ -163,14 +170,14 @@ begin
   if Assigned(ParentNode) and (ANode is TXmlNodeMsXmlAdapter) then
   begin
     SourceAdapter := TXmlNodeMsXmlAdapter(ANode);
-    NewDom := SourceAdapter.FDomNode.cloneNode(True);
-    ParentNode.insertBefore(NewDom, FDomNode);
+    CloneDom := SourceAdapter.FDomNode.cloneNode(True);
+    ParentNode.insertBefore(CloneDom, FDomNode);
   end;
 end;
 
 procedure TXmlNodeMsXmlAdapter.InsertAfter(const ANode: IXmlNode);
 var
-  ParentNode, SiblingNode, NewDom: IXMLDOMNode;
+  ParentNode, SiblingNode, CloneDom: IXMLDOMNode;
   SourceAdapter: TXmlNodeMsXmlAdapter;
 begin
   if not Assigned(FDomNode) then Exit;
@@ -179,12 +186,102 @@ begin
   if Assigned(ParentNode) and (ANode is TXmlNodeMsXmlAdapter) then
   begin
     SourceAdapter := TXmlNodeMsXmlAdapter(ANode);
-    NewDom := SourceAdapter.FDomNode.cloneNode(True);
+    CloneDom := SourceAdapter.FDomNode.cloneNode(True);
     SiblingNode := FDomNode.nextSibling;
     if Assigned(SiblingNode) then
-      ParentNode.insertBefore(NewDom, SiblingNode)
+      ParentNode.insertBefore(CloneDom, SiblingNode)
     else
-      ParentNode.appendChild(NewDom);
+      ParentNode.appendChild(CloneDom);
+  end;
+end;
+
+procedure TXmlNodeMsXmlAdapter.InsertBefore(const NewChild, RefChild: IXmlNode);
+var
+  Parent, RefDom, NewDom: IXMLDOMNode;
+  SrcNew, SrcRef: TXmlNodeMsXmlAdapter;
+begin
+  if (NewChild is TXmlNodeMsXmlAdapter) and (RefChild is TXmlNodeMsXmlAdapter) then
+  begin
+    SrcNew := TXmlNodeMsXmlAdapter(NewChild);
+    SrcRef := TXmlNodeMsXmlAdapter(RefChild);
+    RefDom := SrcRef.FDomNode;
+    NewDom := SrcNew.FDomNode.cloneNode(True);
+
+    Parent := RefDom.parentNode;
+    if Assigned(Parent) then
+      Parent.insertBefore(NewDom, RefDom);
+  end;
+end;
+
+procedure TXmlNodeMsXmlAdapter.InsertAfter(const NewChild, RefChild: IXmlNode);
+var
+  Parent, RefDom, Sibling, NewDom: IXMLDOMNode;
+  SrcNew, SrcRef: TXmlNodeMsXmlAdapter;
+begin
+  if (NewChild is TXmlNodeMsXmlAdapter) and (RefChild is TXmlNodeMsXmlAdapter) then
+  begin
+    SrcNew := TXmlNodeMsXmlAdapter(NewChild);
+    SrcRef := TXmlNodeMsXmlAdapter(RefChild);
+    RefDom := SrcRef.FDomNode;
+    NewDom := SrcNew.FDomNode.cloneNode(True);
+
+    Parent := RefDom.parentNode;
+    if Assigned(Parent) then
+    begin
+      Sibling := RefDom.nextSibling;
+      if Assigned(Sibling) then
+        Parent.insertBefore(NewDom, Sibling)
+      else
+        Parent.appendChild(NewDom);
+    end;
+  end;
+end;
+
+procedure TXmlNodeMsXmlAdapter.Remove;
+var
+  Parent: IXMLDOMNode;
+begin
+  if Assigned(FDomNode) and Assigned(FDomNode.parentNode) then
+  begin
+    Parent := FDomNode.parentNode;
+    Parent.removeChild(FDomNode);
+  end;
+end;
+
+function TXmlNodeMsXmlAdapter.ParentNode: IXmlNode;
+begin
+  Result := nil;
+  if Assigned(FDomNode) and Assigned(FDomNode.parentNode) then
+    Result := TXmlNodeMsXmlAdapter.Create(FDomNode.parentNode);
+end;
+
+function TXmlNodeMsXmlAdapter.CreateChild(NodeType: TXmlNodeType; const Name, Value: string): IXmlNode;
+var
+  Doc: IXMLDOMDocument;
+  NewNode: IXMLDOMNode;
+begin
+  Result := nil;
+  if not Assigned(FDomNode) then Exit;
+
+  Doc := FDomNode.ownerDocument;
+  if not Assigned(Doc) then Exit;
+
+  case NodeType of
+    xntElement: NewNode := Doc.createElement(Name);
+    xntText: NewNode := Doc.createTextNode(Value);
+    xntCData: NewNode := Doc.createCDATASection(Value);
+    xntComment: NewNode := Doc.createComment(Value);
+    xntProcessingInstruction: NewNode := Doc.createProcessingInstruction(Name, Value);
+    xntAttribute: NewNode := Doc.createAttribute(Name);
+  else
+    Exit;
+  end;
+
+  if Assigned(NewNode) then
+  begin
+    if NodeType in [xntElement, xntAttribute] then
+      NewNode.nodeValue := Value;
+    Result := TXmlNodeMsXmlAdapter.Create(NewNode);
   end;
 end;
 

@@ -23,8 +23,16 @@ type
 
     function AsText: string;
     procedure AppendChild(const ANode: IXmlNode);
-    procedure InsertBefore(const ANode: IXmlNode);
-    procedure InsertAfter(const ANode: IXmlNode);
+
+    procedure InsertBefore(const ANode: IXmlNode); overload;
+    procedure InsertBefore(const NewChild, RefChild: IXmlNode); overload;
+    procedure InsertAfter(const ANode: IXmlNode); overload;
+    procedure InsertAfter(const NewChild, RefChild: IXmlNode); overload;
+
+
+    procedure Remove;
+    function ParentNode: IXmlNode;
+    function CreateChild(NodeType: TXmlNodeType; const Name, Value: string): IXmlNode;
   end;
 
 implementation

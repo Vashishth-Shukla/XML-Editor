@@ -3,7 +3,8 @@ unit uXmlEditorPresenter;
 interface
 
 uses
-  uIXmlEditorPresenter, uIXmlNode, uIXmlDocument, uIXmlAdapterFactory, uXmlCommon, System.SysUtils;
+  uIXmlEditorPresenter, uIXmlNode, uIXmlDocument,
+  uIXmlAdapterFactory, uXmlCommon, System.SysUtils;
 
 type
   TXmlEditorPresenter = class(TInterfacedObject, IXmlEditorPresenter)
@@ -21,7 +22,11 @@ type
     procedure SaveXml;
     procedure SaveAsXml;
     procedure ExitApp;
+
     procedure AddNode(NodeType: TXmlNodeType = xntElement);
+    procedure AddNodeBefore(NodeType: TXmlNodeType);
+    procedure AddNodeAfter(NodeType: TXmlNodeType);
+    procedure AddNodeChild(NodeType: TXmlNodeType);
     procedure RemoveNode;
   end;
 
@@ -99,62 +104,81 @@ begin
 end;
 
 procedure TXmlEditorPresenter.AddNode(NodeType: TXmlNodeType);
-var
-  Selected, NewNode: IXmlNode;
 begin
-  if not Assigned(FDoc) then
-  begin
-    FView.ShowMessage('No active document. Please create or open one.');
-    Exit;
-  end;
+  AddNodeChild(NodeType);
+end;
 
-  Selected := FView.GetSelectedTreeNode;
-  if not Assigned(Selected) then
-  begin
-    Selected := FDoc.GetRoot;
-    if not Assigned(Selected) then
-    begin
-      FView.ShowMessage('No valid root node to insert into.');
-      Exit;
-    end;
-  end;
+procedure TXmlEditorPresenter.AddNodeChild(NodeType: TXmlNodeType);
+var
+  ParentNode, NewNode: IXmlNode;
+begin
+  if not Assigned(FDoc) then Exit;
 
-  // Create a new node manually based on type
-  NewNode := FFactory.CreateDocument.GetRoot; // temporary reuse, ideally replace to CreateNode
-  if not Assigned(NewNode) then
-  begin
-    FView.ShowMessage('Failed to create a new node.');
-    Exit;
-  end;
+  ParentNode := FView.GetSelectedTreeNode;
+  if not Assigned(ParentNode) then
+    ParentNode := FDoc.GetRoot;
 
-  case NodeType of
-    xntElement:
-      begin
-        NewNode.SetNodeValue('NewElement');
-      end;
-    xntComment:
-      begin
-        NewNode.SetNodeValue('Comment');
-      end;
-    xntText:
-      begin
-        NewNode.SetNodeValue('Text');
-      end;
-    xntAttribute:
-      begin
-        NewNode.SetNodeValue('Value');
-      end;
-    else
-      NewNode.SetNodeValue('Node');
-  end;
+  if not Assigned(ParentNode) then Exit;
 
-  Selected.AppendChild(NewNode);
+  NewNode := ParentNode.CreateChild(NodeType, 'new', '');
+  if Assigned(NewNode) then
+    ParentNode.AppendChild(NewNode);
+
+  FView.UpdateXmlTree(FDoc.GetRoot);
+end;
+
+procedure TXmlEditorPresenter.AddNodeBefore(NodeType: TXmlNodeType);
+var
+  RefNode, NewNode, ParentNode: IXmlNode;
+begin
+  if not Assigned(FDoc) then Exit;
+
+  RefNode := FView.GetSelectedTreeNode;
+  if not Assigned(RefNode) then Exit;
+
+  ParentNode := RefNode.ParentNode;
+  if not Assigned(ParentNode) then Exit;
+
+  NewNode := ParentNode.CreateChild(NodeType, 'before', '');
+  if Assigned(NewNode) then
+    ParentNode.InsertBefore(NewNode, RefNode);
+
+  FView.UpdateXmlTree(FDoc.GetRoot);
+end;
+
+procedure TXmlEditorPresenter.AddNodeAfter(NodeType: TXmlNodeType);
+var
+  RefNode, NewNode, ParentNode: IXmlNode;
+begin
+  if not Assigned(FDoc) then Exit;
+
+  RefNode := FView.GetSelectedTreeNode;
+  if not Assigned(RefNode) then Exit;
+
+  ParentNode := RefNode.ParentNode;
+  if not Assigned(ParentNode) then Exit;
+
+  NewNode := ParentNode.CreateChild(NodeType, 'after', '');
+  if Assigned(NewNode) then
+    ParentNode.InsertAfter(NewNode, RefNode);
+
   FView.UpdateXmlTree(FDoc.GetRoot);
 end;
 
 procedure TXmlEditorPresenter.RemoveNode;
+var
+  Node: IXmlNode;
 begin
-  FView.ShowMessage('RemoveNode not implemented yet.');
+  if not Assigned(FDoc) then Exit;
+
+  Node := FView.GetSelectedTreeNode;
+  if Assigned(Node) and (Node <> FDoc.GetRoot) then
+  begin
+    Node.Remove;
+    FView.UpdateXmlTree(FDoc.GetRoot);
+  end
+  else
+    FView.ShowMessage('Cannot remove the root node.');
 end;
 
 end.
