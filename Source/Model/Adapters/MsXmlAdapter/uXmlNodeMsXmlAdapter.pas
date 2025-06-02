@@ -56,8 +56,8 @@ end;
 
 function TXmlNodeMsXmlAdapter.NodeValue: string;
 begin
-  if Assigned(FDomNode) and not VarIsEmpty(FDomNode.nodeValue) then
-    Result := FDomNode.nodeValue
+  if Assigned(FDomNode) and not VarIsClear(FDomNode.nodeValue) and not VarIsNull(FDomNode.nodeValue) then
+    Result := VarToStr(FDomNode.nodeValue)
   else
     Result := '';
 end;

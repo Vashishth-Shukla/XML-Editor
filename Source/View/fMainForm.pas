@@ -89,7 +89,7 @@ end;
 procedure TfrmMain.InitializeTree;
 begin
   vstContent.NodeDataSize := SizeOf(TNodeData);
-  vstContent.Header.Options := [hoVisible, hoAutoResize, hoColumnResize];
+  vstContent.Header.Options := [hoVisible, hoColumnResize];
   vstContent.TreeOptions.PaintOptions := [toShowHorzGridLines, toShowVertGridLines];
   vstContent.TreeOptions.MiscOptions := [toEditable];
   vstContent.Header.Columns.Clear;
@@ -103,7 +103,7 @@ begin
   with vstContent.Header.Columns.Add do
   begin
     Text := 'Value';
-    Width := 300;
+    Width := 400;
   end;
 
   vstContent.OnGetText := vstContentGetText;

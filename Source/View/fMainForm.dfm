@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'frmMain'
-  ClientHeight = 441
-  ClientWidth = 624
+  ClientHeight = 741
+  ClientWidth = 584
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,12 +11,13 @@ object frmMain: TfrmMain
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = mmMain
+  OnCreate = FormCreate
   TextHeight = 15
   object vstContent: TVirtualStringTree
     Left = 0
     Top = 0
-    Width = 624
-    Height = 422
+    Width = 584
+    Height = 722
     Align = alClient
     DefaultNodeHeight = 19
     Header.AutoSizeIndex = 0
@@ -26,15 +27,19 @@ object frmMain: TfrmMain
     TabOrder = 0
     Touch.InteractiveGestures = [igPan, igPressAndTap]
     Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
+    ExplicitWidth = 624
+    ExplicitHeight = 422
     Columns = <>
   end
   object sbStatus: TStatusBar
     Left = 0
-    Top = 422
-    Width = 624
+    Top = 722
+    Width = 584
     Height = 19
     Panels = <>
     SimplePanel = True
+    ExplicitTop = 422
+    ExplicitWidth = 624
   end
   object mmMain: TMainMenu
     Left = 592
