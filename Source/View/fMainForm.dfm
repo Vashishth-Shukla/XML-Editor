@@ -25,6 +25,9 @@ object frmMain: TfrmMain
     Header.MainColumn = -1
     PopupMenu = popOpt
     TabOrder = 0
+    OnDblClick = vstContentDblClick
+    OnEditing = vstContentEditing
+    OnNewText = vstContentNewText
     Touch.InteractiveGestures = [igPan, igPressAndTap]
     Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     ExplicitWidth = 624

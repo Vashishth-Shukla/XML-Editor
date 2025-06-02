@@ -35,6 +35,9 @@ type
     procedure miFileNewClick(Sender: TObject);
     procedure vstContentGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure vstContentGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure vstContentEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+    procedure vstContentNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: string);
+    procedure vstContentDblClick(Sender: TObject);
     procedure miOptAdElemClick(Sender: TObject);
     procedure miOptAdAttriClick(Sender: TObject);
     procedure miOptAdTxtClick(Sender: TObject);
@@ -91,7 +94,12 @@ begin
   vstContent.NodeDataSize := SizeOf(TNodeData);
   vstContent.Header.Options := [hoVisible, hoColumnResize];
   vstContent.TreeOptions.PaintOptions := [toShowHorzGridLines, toShowVertGridLines];
-  vstContent.TreeOptions.MiscOptions := [toEditable];
+  vstContent.TreeOptions.MiscOptions := [
+    toEditable,
+    toToggleOnDblClick,
+    toFullRepaintOnResize
+  ];
+
   vstContent.Header.Columns.Clear;
 
   // Enable tree painting options
@@ -316,6 +324,32 @@ procedure TfrmMain.miFileNewClick(Sender: TObject);
 begin
   if Assigned(FPresenter) then FPresenter.NewXml;
 end;
+
+
+procedure TfrmMain.vstContentEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; var Allowed: Boolean);
+begin
+  Allowed := Column = 1; // Only allow editing the 'Value' column
+end;
+
+procedure TfrmMain.vstContentNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; NewText: string);
+var
+  Data: PNodeData;
+begin
+  if Column <> 1 then Exit; // Only update the value
+  Data := Sender.GetNodeData(Node);
+  if Assigned(Data) and Assigned(Data.Xml) then
+    Data.Xml.SetNodeValue(NewText);
+end;
+
+procedure TfrmMain.vstContentDblClick(Sender: TObject);
+begin
+  if Assigned(vstContent.FocusedNode) then
+    vstContent.EditNode(vstContent.FocusedNode, 1); // Edit Value column
+end;
+
+
 
 end.
 
