@@ -33,7 +33,7 @@ type
 implementation
 
 uses
-  System.Classes;
+  System.Classes, Vcl.Dialogs;
 
 constructor TXmlEditorPresenter.Create(const AFactory: IXmlAdapterFactory);
 begin
@@ -111,6 +111,7 @@ end;
 procedure TXmlEditorPresenter.AddNodeChild(NodeType: TXmlNodeType);
 var
   ParentNode, NewNode: IXmlNode;
+  NodeName, NodeValue: string;
 begin
   if not Assigned(FDoc) then Exit;
 
@@ -118,9 +119,31 @@ begin
   if not Assigned(ParentNode) then
     ParentNode := FDoc.GetRoot;
 
-  if not Assigned(ParentNode) then Exit;
+  if not Assigned(ParentNode) or
+     not (ParentNode.NodeType in [xntElement, xntDocument]) then
+  begin
+    FView.ShowMessage('Cannot add child to this node type.');
+    Exit;
+  end;
 
-  NewNode := ParentNode.CreateChild(NodeType, 'new', '');
+  case NodeType of
+    xntElement, xntAttribute:
+      begin
+        NodeName := InputBox('Enter Name', 'Name:', '');
+        if NodeName = '' then Exit;
+        NodeValue := InputBox('Enter Value', 'Value:', '');
+        NewNode := ParentNode.CreateChild(NodeType, NodeName, NodeValue);
+      end;
+    xntText, xntCData, xntComment:
+      begin
+        NodeValue := InputBox('Enter Value', 'Value:', '');
+        if NodeValue = '' then Exit;
+        NewNode := ParentNode.CreateChild(NodeType, '', NodeValue);
+      end;
+  else
+    Exit;
+  end;
+
   if Assigned(NewNode) then
     ParentNode.AppendChild(NewNode);
 
@@ -130,16 +153,39 @@ end;
 procedure TXmlEditorPresenter.AddNodeBefore(NodeType: TXmlNodeType);
 var
   RefNode, NewNode, ParentNode: IXmlNode;
+  NodeName, NodeValue: string;
 begin
   if not Assigned(FDoc) then Exit;
 
   RefNode := FView.GetSelectedTreeNode;
   if not Assigned(RefNode) then Exit;
+  if RefNode = FDoc.GetRoot then
+  begin
+    FView.ShowMessage('Cannot insert before root node.');
+    Exit;
+  end;
 
   ParentNode := RefNode.ParentNode;
   if not Assigned(ParentNode) then Exit;
 
-  NewNode := ParentNode.CreateChild(NodeType, 'before', '');
+  case NodeType of
+    xntElement, xntAttribute:
+      begin
+        NodeName := InputBox('Enter Name', 'Name:', '');
+        if NodeName = '' then Exit;
+        NodeValue := InputBox('Enter Value', 'Value:', '');
+        NewNode := ParentNode.CreateChild(NodeType, NodeName, NodeValue);
+      end;
+    xntText, xntCData, xntComment:
+      begin
+        NodeValue := InputBox('Enter Value', 'Value:', '');
+        if NodeValue = '' then Exit;
+        NewNode := ParentNode.CreateChild(NodeType, '', NodeValue);
+      end;
+  else
+    Exit;
+  end;
+
   if Assigned(NewNode) then
     ParentNode.InsertBefore(NewNode, RefNode);
 
@@ -149,16 +195,39 @@ end;
 procedure TXmlEditorPresenter.AddNodeAfter(NodeType: TXmlNodeType);
 var
   RefNode, NewNode, ParentNode: IXmlNode;
+  NodeName, NodeValue: string;
 begin
   if not Assigned(FDoc) then Exit;
 
   RefNode := FView.GetSelectedTreeNode;
   if not Assigned(RefNode) then Exit;
+  if RefNode = FDoc.GetRoot then
+  begin
+    FView.ShowMessage('Cannot insert after root node.');
+    Exit;
+  end;
 
   ParentNode := RefNode.ParentNode;
   if not Assigned(ParentNode) then Exit;
 
-  NewNode := ParentNode.CreateChild(NodeType, 'after', '');
+  case NodeType of
+    xntElement, xntAttribute:
+      begin
+        NodeName := InputBox('Enter Name', 'Name:', '');
+        if NodeName = '' then Exit;
+        NodeValue := InputBox('Enter Value', 'Value:', '');
+        NewNode := ParentNode.CreateChild(NodeType, NodeName, NodeValue);
+      end;
+    xntText, xntCData, xntComment:
+      begin
+        NodeValue := InputBox('Enter Value', 'Value:', '');
+        if NodeValue = '' then Exit;
+        NewNode := ParentNode.CreateChild(NodeType, '', NodeValue);
+      end;
+  else
+    Exit;
+  end;
+
   if Assigned(NewNode) then
     ParentNode.InsertAfter(NewNode, RefNode);
 

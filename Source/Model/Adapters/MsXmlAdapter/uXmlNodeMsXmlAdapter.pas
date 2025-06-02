@@ -154,7 +154,16 @@ begin
   begin
     SourceAdapter := TXmlNodeMsXmlAdapter(ANode);
     NewDom := SourceAdapter.FDomNode.cloneNode(True);
-    FDomNode.appendChild(NewDom);
+    if NewDom.nodeType = NODE_ATTRIBUTE then
+    begin
+      if (FDomNode.nodeType = NODE_ELEMENT) then
+        (FDomNode as IXMLDOMElement).setAttribute(NewDom.nodeName, NewDom.nodeValue);
+    end
+    else
+    begin
+      FDomNode.appendChild(NewDom);
+    end;
+
   end;
 end;
 

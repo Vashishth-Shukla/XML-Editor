@@ -11,6 +11,7 @@ object frmMain: TfrmMain
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = mmMain
+  Position = poMainFormCenter
   OnCreate = FormCreate
   TextHeight = 15
   object vstContent: TVirtualStringTree
