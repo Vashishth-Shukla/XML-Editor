@@ -42,21 +42,26 @@ object frmMain: TfrmMain
       Caption = 'File'
       object miFileNew: TMenuItem
         Caption = 'New'
+        OnClick = miFileNewClick
       end
       object miFileOpen: TMenuItem
         Caption = 'Open...'
+        OnClick = miFileOpenClick
       end
       object miFileSave: TMenuItem
         Caption = 'Save'
+        OnClick = miFileSaveClick
       end
       object miFileSaveAs: TMenuItem
         Caption = 'Save As...'
+        OnClick = miFileSaveAsClick
       end
       object N2: TMenuItem
         Caption = '-'
       end
       object miFileExit: TMenuItem
         Caption = 'Exit'
+        OnClick = miFileExitClick
       end
     end
   end
@@ -65,6 +70,7 @@ object frmMain: TfrmMain
     Top = 80
     object miOptAdElem: TMenuItem
       Caption = 'Add Element'
+      OnClick = miOptAdElemClick
       object miOptAdElmBfr: TMenuItem
         Caption = 'Before'
       end
@@ -77,18 +83,23 @@ object frmMain: TfrmMain
     end
     object miOptAdAttri: TMenuItem
       Caption = 'Add Attribute'
+      OnClick = miOptAdAttriClick
     end
     object miOptAdTxt: TMenuItem
       Caption = 'Add Text'
+      OnClick = miOptAdTxtClick
     end
     object miOptAdCmt: TMenuItem
       Caption = 'Add Comment'
+      OnClick = miOptAdCmtClick
     end
     object miOptAdCDT: TMenuItem
       Caption = 'Add CDTD'
+      OnClick = miOptAdCDTClick
     end
     object miOptAdProIns: TMenuItem
       Caption = 'Add Process Instructions'
+      OnClick = miOptAdProInsClick
     end
     object N1: TMenuItem
       Caption = '-'

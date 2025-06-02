@@ -36,12 +36,12 @@ type
     procedure miOptAdCmtClick(Sender: TObject);
     procedure miOptAdCDTClick(Sender: TObject);
     procedure miOptAdProInsClick(Sender: TObject);
-
     procedure miFileOpenClick(Sender: TObject);
     procedure miFileSaveClick(Sender: TObject);
     procedure miFileSaveAsClick(Sender: TObject);
     procedure miFileExitClick(Sender: TObject);
     procedure miOptDltClick(Sender: TObject);
+    procedure miFileNewClick(Sender: TObject);
 
   private
     FPresenter: IXmlEditorPresenter;
@@ -77,6 +77,21 @@ procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   InitializeTree;
   vstContent.PopupMenu := popOpt;
+
+  // Hook File menu
+  miFileOpen.OnClick := miFileOpenClick;
+  miFileSave.OnClick := miFileSaveClick;
+  miFileSaveAs.OnClick := miFileSaveAsClick;
+  miFileExit.OnClick := miFileExitClick;
+
+  // Hook context menu submenu items (extended)
+  miOptAdElem.OnClick := miOptAdElemClick;
+  miOptAdAttri.OnClick := miOptAdAttriClick;
+  miOptAdTxt.OnClick := miOptAdTxtClick;
+  miOptAdCmt.OnClick := miOptAdCmtClick;
+  miOptAdCDT.OnClick := miOptAdCDTClick;
+  miOptAdProIns.OnClick := miOptAdProInsClick;
+  vstContent.PopupMenu := popOpt;
   miFileOpen.OnClick := miFileOpenClick;
   miFileSave.OnClick := miFileSaveClick;
   miFileSaveAs.OnClick := miFileSaveAsClick;
@@ -102,7 +117,7 @@ begin
     Width := 300;
   end;
   vstContent.OnGetText := vstContentGetText;
-  //vstContent.OnGetTextColor := vstContentGetTextColor;
+  // vstContent.OnGetTextColor := vstContentGetTextColor;
 end;
 
 function TfrmMain.GetXmlNodeFrom(Node: PVirtualNode): IXmlNode;
@@ -290,6 +305,11 @@ end;
 procedure TfrmMain.miFileExitClick(Sender: TObject);
 begin
   if Assigned(FPresenter) then FPresenter.ExitApp;
+end;
+
+procedure TfrmMain.miFileNewClick(Sender: TObject);
+begin
+  if Assigned(FPresenter) then FPresenter.NewXml;
 end;
 
 end.
