@@ -13,6 +13,7 @@ type
     FDoc: IXmlDocument;
     FFactory: IXmlAdapterFactory;
     FCurrentFileName: string;
+    FIsModified: Boolean;
   public
     constructor Create(const AFactory: IXmlAdapterFactory);
     procedure SetView(const AView: IMainFormView);
@@ -31,6 +32,7 @@ type
 
     procedure UpdateNodeValue(const ANode: IXmlNode; const NewText: string);
 
+    function ConfirmDiscardChanges: Boolean;
   end;
 
 implementation
@@ -42,6 +44,7 @@ constructor TXmlEditorPresenter.Create(const AFactory: IXmlAdapterFactory);
 begin
   inherited Create;
   FFactory := AFactory;
+
 end;
 
 procedure TXmlEditorPresenter.SetView(const AView: IMainFormView);
@@ -51,16 +54,20 @@ end;
 
 procedure TXmlEditorPresenter.NewXml;
 begin
+  if not ConfirmDiscardChanges then SaveXml;
+
   FDoc := FFactory.CreateDocument;
   FDoc.CreateEmpty('root');
   FCurrentFileName := '';
   FView.UpdateXmlTree(FDoc.GetRoot);
+  FIsModified := True;
 end;
 
 procedure TXmlEditorPresenter.OpenXml;
 var
   FileName: string;
 begin
+  if not ConfirmDiscardChanges then SaveXml;
   FileName := FView.OpenFileDialog('XML Files|*.xml');
   if FileName <> '' then
   begin
@@ -69,6 +76,7 @@ begin
     begin
       FCurrentFileName := FileName;
       FView.UpdateXmlTree(FDoc.GetRoot);
+      FIsModified := False;
     end
     else
       FView.ShowMessage('Failed to load XML file.');
@@ -83,6 +91,7 @@ begin
       SaveAsXml
     else
       FDoc.SaveToFile(FCurrentFileName);
+    FIsModified := False;
   end;
 end;
 
@@ -97,18 +106,21 @@ begin
     begin
       FDoc.SaveToFile(FileName);
       FCurrentFileName := FileName;
+      FIsModified := False;
     end;
   end;
 end;
 
 procedure TXmlEditorPresenter.ExitApp;
 begin
-  Halt;
+  if ConfirmDiscardChanges then
+    Halt;
 end;
 
 procedure TXmlEditorPresenter.AddNode(NodeType: TXmlNodeType);
 begin
   AddNodeChild(NodeType);
+  FIsModified := True;
 end;
 
 procedure TXmlEditorPresenter.AddNodeChild(NodeType: TXmlNodeType);
@@ -154,7 +166,11 @@ begin
   end;
 
   if Assigned(NewNode) then
+  begin
     ParentNode.AppendChild(NewNode);
+    FIsModified := True;
+  end;
+
 
   FView.UpdateXmlTree(FDoc.GetRoot);
 end;
@@ -197,7 +213,11 @@ begin
   end;
 
   if Assigned(NewNode) then
-    ParentNode.InsertBefore(NewNode, RefNode);
+  begin
+   ParentNode.InsertBefore(NewNode, RefNode);
+   FIsModified := True;
+  end;
+
 
   FView.UpdateXmlTree(FDoc.GetRoot);
 end;
@@ -240,7 +260,10 @@ begin
   end;
 
   if Assigned(NewNode) then
-    ParentNode.InsertAfter(NewNode, RefNode);
+  begin
+   ParentNode.InsertAfter(NewNode, RefNode);
+   FIsModified := True;
+  end;
 
   FView.UpdateXmlTree(FDoc.GetRoot);
 end;
@@ -256,6 +279,7 @@ begin
   begin
     Node.Remove;
     FView.UpdateXmlTree(FDoc.GetRoot);
+    FIsModified := True;
   end
   else
     FView.ShowMessage('Cannot remove the root node.');
@@ -279,7 +303,19 @@ begin
 
   ANode.SetNodeValue(NewText);
   FView.UpdateXmlTree(FDoc.GetRoot);
+  FIsModified := True;
   FView.ShowMessage('Node value updated.');
+end;
+
+function TXmlEditorPresenter.ConfirmDiscardChanges: Boolean;
+begin
+  Result := True;
+  if FIsModified then
+  begin
+    Result := FView.ShowConfirmationDialog(
+      'You have unsaved changes. Do you want to discard them?',
+      'Unsaved Changes');
+  end;
 end;
 
 end.
