@@ -288,7 +288,7 @@ begin
 
   if Assigned(NewNode) then
   begin
-    if NodeType in [xntElement, xntAttribute] then
+    if NodeType in [xntAttribute] then
       NewNode.nodeValue := Value;
     Result := TXmlNodeMsXmlAdapter.Create(NewNode);
   end;

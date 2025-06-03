@@ -31,8 +31,6 @@ object frmMain: TfrmMain
     OnNewText = vstContentNewText
     Touch.InteractiveGestures = [igPan, igPressAndTap]
     Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
-    ExplicitWidth = 624
-    ExplicitHeight = 422
     Columns = <>
   end
   object sbStatus: TStatusBar
@@ -42,8 +40,6 @@ object frmMain: TfrmMain
     Height = 19
     Panels = <>
     SimplePanel = True
-    ExplicitTop = 422
-    ExplicitWidth = 624
   end
   object mmMain: TMainMenu
     Left = 592
@@ -109,11 +105,6 @@ object frmMain: TfrmMain
     object miOptAdCDT: TMenuItem
       Caption = 'Add CDTD'
       OnClick = miOptAdCDTClick
-    end
-    object miOptAdProIns: TMenuItem
-      Caption = 'Add Process Instructions'
-      Enabled = False
-      OnClick = miOptAdProInsClick
     end
     object N1: TMenuItem
       Caption = '-'

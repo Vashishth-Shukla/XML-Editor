@@ -30,6 +30,9 @@ type
     procedure AddNodeAfter(NodeType: TXmlNodeType);
     procedure AddNodeChild(NodeType: TXmlNodeType);
     procedure RemoveNode;
+
+    procedure UpdateNodeValue(const ANode: IXmlNode; const NewText: string);
+
   end;
 
 implementation

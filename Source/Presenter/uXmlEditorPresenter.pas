@@ -28,6 +28,9 @@ type
     procedure AddNodeAfter(NodeType: TXmlNodeType);
     procedure AddNodeChild(NodeType: TXmlNodeType);
     procedure RemoveNode;
+
+    procedure UpdateNodeValue(const ANode: IXmlNode; const NewText: string);
+
   end;
 
 implementation
@@ -127,7 +130,13 @@ begin
   end;
 
   case NodeType of
-    xntElement, xntAttribute:
+      xntElement:
+      begin
+        NodeName := InputBox('Enter Name', 'Name:', '');
+        if NodeName = '' then Exit;
+        NewNode := ParentNode.CreateChild(NodeType, NodeName, NodeValue);
+      end;
+    xntAttribute:
       begin
         NodeName := InputBox('Enter Name', 'Name:', '');
         if NodeName = '' then Exit;
@@ -159,8 +168,9 @@ begin
 
   RefNode := FView.GetSelectedTreeNode;
   if not Assigned(RefNode) then Exit;
-  if RefNode = FDoc.GetRoot then
+  if RefNode.AsText = FDoc.GetRoot.AsText then
   begin
+    MessageDlg('Cannot insert before root node.', mtWarning, [mbOK], 0);
     FView.ShowMessage('Cannot insert before root node.');
     Exit;
   end;
@@ -201,8 +211,9 @@ begin
 
   RefNode := FView.GetSelectedTreeNode;
   if not Assigned(RefNode) then Exit;
-  if RefNode = FDoc.GetRoot then
+  if RefNode.AsText = FDoc.GetRoot.AsText then
   begin
+    MessageDlg('Cannot insert after root node.', mtWarning, [mbOK], 0);
     FView.ShowMessage('Cannot insert after root node.');
     Exit;
   end;
@@ -248,6 +259,27 @@ begin
   end
   else
     FView.ShowMessage('Cannot remove the root node.');
+end;
+
+
+procedure TXmlEditorPresenter.UpdateNodeValue(const ANode: IXmlNode; const NewText: string);
+begin
+  if not Assigned(ANode) then
+  begin
+    FView.ShowMessage('No node selected to update.');
+    Exit;
+  end;
+
+  if ANode.NodeType = xntElement then
+  begin
+    MessageDlg('Cannot insert value directly into an element node.', mtWarning, [mbOK], 0);
+    FView.ShowMessage('Cannot insert value directly into an element node.');
+    Exit;
+  end;
+
+  ANode.SetNodeValue(NewText);
+  FView.UpdateXmlTree(FDoc.GetRoot);
+  FView.ShowMessage('Node value updated.');
 end;
 
 end.

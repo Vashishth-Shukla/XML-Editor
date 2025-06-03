@@ -24,7 +24,6 @@ type
     miOptAdTxt: TMenuItem;
     miOptAdCmt: TMenuItem;
     miOptAdCDT: TMenuItem;
-    miOptAdProIns: TMenuItem;
     miOptDlt: TMenuItem;
     miFileNew: TMenuItem;
     miOptAdElmBfr: TMenuItem;
@@ -343,7 +342,7 @@ begin
   if Column <> 1 then Exit; // Only update the value
   Data := Sender.GetNodeData(Node);
   if Assigned(Data) and Assigned(Data.Xml) then
-    Data.Xml.SetNodeValue(NewText);
+    FPresenter.UpdateNodeValue(Data.Xml, NewText);
 end;
 
 procedure TfrmMain.vstContentDblClick(Sender: TObject);
