@@ -47,7 +47,6 @@
 │       └── Win64/
 │           └── Debug/
 │           └── Release/│
-└── Docs/
-    └── README.md
-    └── Architecture.md
-    └── ...
+└── README.md
+└── Architecture.md
+└── ...
